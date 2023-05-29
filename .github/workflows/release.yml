@@ -1,0 +1,101 @@
+name: Release FNE2
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  publish-linux-x64:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet publish -r linux-x64 -c Release
+    - name: 'Upload Router'
+      uses: actions/upload-artifact@v3
+      with:
+        name: router-linux_x64
+        path: fnerouter/bin/Release/netcoreapp3.1/linux-x64/publish
+        retention-days: 5
+    - name: 'Upload Parrot'
+      uses: actions/upload-artifact@v3
+      with:
+        name: parrot-linux_x64
+        path: fneparrot/bin/Release/netcoreapp3.1/linux-x64/publish
+        retention-days: 5
+    - name: 'Upload Monitor'
+      uses: actions/upload-artifact@v3
+      with:
+        name: monitor-linux_x64
+        path: fnemonitor/bin/Release/net6.0/linux-x64/publish
+        retention-days: 5
+    
+  publish-linux-arm64:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet publish -r linux-arm64 -c Release
+    - name: 'Upload Router'
+      uses: actions/upload-artifact@v3
+      with:
+        name: router-linux_arm64
+        path: fnerouter/bin/Release/netcoreapp3.1/linux-arm64/publish
+        retention-days: 5
+    - name: 'Upload Parrot'
+      uses: actions/upload-artifact@v3
+      with:
+        name: parrot-linux_arm64
+        path: fneparrot/bin/Release/netcoreapp3.1/linux-arm64/publish
+        retention-days: 5
+    - name: 'Upload Monitor'
+      uses: actions/upload-artifact@v3
+      with:
+        name: monitor-linux_arm64
+        path: fnemonitor/bin/Release/net6.0/linux-arm64/publish
+        retention-days: 5
+      
+  publish-windows-x64:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet publish -r win-x64 -c Release
+    - name: 'Upload Router'
+      uses: actions/upload-artifact@v3
+      with:
+        name: router-windows_x64
+        path: fnerouter/bin/Release/netcoreapp3.1/win-x64/publish
+        retention-days: 5
+    - name: 'Upload Parrot'
+      uses: actions/upload-artifact@v3
+      with:
+        name: parrot-windows_x64
+        path: fneparrot/bin/Release/netcoreapp3.1/win-x64/publish
+        retention-days: 5
+    - name: 'Upload Monitor'
+      uses: actions/upload-artifact@v3
+      with:
+        name: monitor-windows_x64
+        path: fnemonitor/bin/Release/net6.0/win-x64/publish
+        retention-days: 5

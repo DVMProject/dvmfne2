@@ -1,0 +1,10 @@
+﻿#
+# Digital Voice Modem - Fixed Network Equipment (Radio ID Blacklist)
+#
+# @package DVM / Fixed Network Equipment
+#
+
+  # Radio ID
+- id: 1234
+  # Textual Alias
+  name: Radio Name
