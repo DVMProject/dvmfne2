@@ -82,7 +82,7 @@ namespace fnerouter
             master.AllowDiagnosticTransfer = Program.Configuration.AllowDiagTrans;
 
             master.PingTime = Program.Configuration.PingTime;
-            master.MaxMissed = Program.Configuration.MaxMissed;
+            master.MaxMissed = Program.Configuration.MaxMissedPings;
             master.Passphrase = config.Passphrase;
             master.Repeat = config.Repeat;
 

@@ -2,7 +2,7 @@
   "profiles": {
     "fnerouter": {
       "commandName": "Project",
-      "commandLineArgs": "-c config.example.yml --log-on-console"
+      "commandLineArgs": "-c routerconfig.example.yml --log-on-console"
     }
   }
 }
