@@ -649,13 +649,13 @@ namespace fnecore
         /// <summary>
         /// Internal helper to compare authorization hashes.
         /// </summary>
-        /// <param name="frame">UDP frame</param>
+        /// <param name="message">UDP frame</param>
         /// <param name="info">Peer Information</param>
-        private bool CompareAuthHash(UdpFrame frame, PeerInformation info)
+        private bool CompareAuthHash(byte[] message, PeerInformation info)
         {
             // get the hash in the frame message
-            byte[] hash = new byte[frame.Message.Length - 8];
-            Buffer.BlockCopy(frame.Message, 8, hash, 0, hash.Length);
+            byte[] hash = new byte[message.Length - 8];
+            Buffer.BlockCopy(message, 8, hash, 0, hash.Length);
 
             // calculate our own hash
             byte[] inBuf = new byte[4 + Passphrase.Length];
@@ -964,7 +964,7 @@ namespace fnecore
 
                                     if (info.State == ConnectionState.WAITING_AUTHORISATION)
                                     {
-                                        if (CompareAuthHash(frame, info))
+                                        if (CompareAuthHash(message, info))
                                         {
                                             info.State = ConnectionState.WAITING_CONFIG;
 
