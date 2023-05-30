@@ -649,7 +649,7 @@ namespace fnecore
         /// <summary>
         /// Internal helper to compare authorization hashes.
         /// </summary>
-        /// <param name="message">UDP frame</param>
+        /// <param name="message">FNE message frame</param>
         /// <param name="info">Peer Information</param>
         private bool CompareAuthHash(byte[] message, PeerInformation info)
         {
