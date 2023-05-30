@@ -72,7 +72,7 @@ namespace fneparrot
             master.RawPacketTrace = Configuration.RawPacketTrace;
 
             master.PingTime = Configuration.PingTime;
-            master.MaxMissed = Configuration.MaxMissed;
+            master.MaxMissed = Configuration.MaxMissedPings;
             master.Passphrase = config.Passphrase;
             master.Repeat = config.Repeat;
 

@@ -101,7 +101,7 @@ namespace fneparrot
         /// <summary>
         /// 
         /// </summary>
-        public int MaxMissed = 5;
+        public int MaxMissedPings = 5;
 
         /// <summary>
         /// 
