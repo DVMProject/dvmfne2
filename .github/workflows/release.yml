@@ -22,7 +22,6 @@ jobs:
       working-directory: ./src/fnerouter
       run: dotnet publish -r linux-x64 -c Release
     - name: 'Upload Router'
-      working-directory: ./src/fnerouter
       uses: actions/upload-artifact@v3
       with:
         name: router-linux_x64
