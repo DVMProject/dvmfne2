@@ -128,7 +128,6 @@ jobs:
       working-directory: ./src/fneparrot
       run: dotnet publish -r win-x64 -c Release
     - name: FNEParrot Package
-      uses: actions/checkout@v1
       working-directory: ./src/fneparrot/
       run: Compress-Archive -Path bin/Release/netcoreapp3.1/win-x64/publish/* -DestinationPath FNEParrot-Win64.zip
     - name: 'Upload Parrot'
