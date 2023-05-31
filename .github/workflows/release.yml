@@ -68,7 +68,7 @@ jobs:
       run: dotnet publish -r linux-arm64 -c Release
     - name: FNERouter Package
       working-directory: ./src/fnerouter/
-      run: tar -czf FNERouter-Linux-arm64.tar.gz bin/Release/netcoreapp3.1/linux-x64/publish/*
+      run: tar -czf FNERouter-Linux-arm64.tar.gz bin/Release/netcoreapp3.1/linux-arm64/publish/*
     - name: 'Upload Router'
       uses: actions/upload-artifact@v3
       with:
@@ -83,7 +83,7 @@ jobs:
       run: dotnet publish -r linux-arm64 -c Release
     - name: FNEParrot Package
       working-directory: ./src/fneparrot/
-      run: tar -czf FNEParrot-Linux-arm64.tar.gz bin/Release/netcoreapp3.1/linux-x64/publish/*
+      run: tar -czf FNEParrot-Linux-arm64.tar.gz bin/Release/netcoreapp3.1/linux-arm64/publish/*
     - name: 'Upload Parrot'
       uses: actions/upload-artifact@v3
       with:
