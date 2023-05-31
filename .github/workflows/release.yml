@@ -21,7 +21,7 @@ jobs:
     - name: FNERouter Build
       working-directory: ./src/fnerouter
       run: dotnet publish -r linux-x64 -c Release
-    - name: FNERouter Linux-x64 Package
+    - name: FNERouter Package
       working-directory: ./src/fnerouter/
       run: tar -czf FNERouter-Linux-64.tar.gz bin/Release/netcoreapp3.1/linux-x64/publish/*
     - name: 'Upload Router'
@@ -36,11 +36,14 @@ jobs:
     - name: FNEParrot Build
       working-directory: ./src/fneparrot
       run: dotnet publish -r linux-x64 -c Release
+    - name: FNEParrot Package
+      working-directory: ./src/fneparrot/
+      run: tar -czf FNEParrot-Linux-64.tar.gz bin/Release/netcoreapp3.1/linux-x64/publish/*
     - name: 'Upload Parrot'
       uses: actions/upload-artifact@v3
       with:
-        name: parrot-linux_x64
-        path: fneparrot/bin/Release/netcoreapp3.1/linux-x64/publish
+        name: FNEParrot-Linux-64.tar.gz
+        path: ./src/fneparrot/
         retention-days: 5
 #    - name: 'Upload Monitor'
 #      uses: actions/upload-artifact@v3
@@ -63,11 +66,14 @@ jobs:
     - name: FNERouter Build
       working-directory: ./src/fnerouter
       run: dotnet publish -r linux-arm64 -c Release
+    - name: FNERouter Package
+      working-directory: ./src/fnerouter/
+      run: tar -czf FNERouter-Linux-arm64.tar.gz bin/Release/netcoreapp3.1/linux-x64/publish/*
     - name: 'Upload Router'
       uses: actions/upload-artifact@v3
       with:
-        name: router-linux_arm64
-        path: fnerouter/bin/Release/netcoreapp3.1/linux-arm64/publish
+        name: FNERouter-Linux-arm64.tar.gz
+        path: ./src/fnerouter/
         retention-days: 5
     - name: FNEParrot Restore dependencies
       working-directory: ./src/fneparrot
@@ -75,11 +81,14 @@ jobs:
     - name: FNEParrot Build
       working-directory: ./src/fneparrot
       run: dotnet publish -r linux-arm64 -c Release
+    - name: FNEParrot Package
+      working-directory: ./src/fneparrot/
+      run: tar -czf FNEParrot-Linux-arm64.tar.gz bin/Release/netcoreapp3.1/linux-x64/publish/*
     - name: 'Upload Parrot'
       uses: actions/upload-artifact@v3
       with:
-        name: parrot-linux_arm64
-        path: fneparrot/bin/Release/netcoreapp3.1/linux-arm64/publish
+        name: FNEParrot-Linux-arm64.tar.gz
+        path: ./src/fneparrot/
         retention-days: 5
 #    - name: 'Upload Monitor'
 #      uses: actions/upload-artifact@v3
@@ -102,23 +111,30 @@ jobs:
     - name: FNERouter Build
       working-directory: ./src/fnerouter
       run: dotnet publish -r win-x64 -c Release
+    - name: FNERouter Package
+      working-directory: ./src/fnerouter/
+      run: zip FNERouter-Win64.zip bin/Release/netcoreapp3.1/win-x64/publish/*
     - name: 'Upload Router'
       uses: actions/upload-artifact@v3
       with:
-        name: router-windows_x64
-        path: fnerouter/bin/Release/netcoreapp3.1/win-x64/publish
+        name: FNERouter-Win64.zip
+        path: ./src/fnerouter/
         retention-days: 5
+
     - name: FNEParrot Restore dependencies
       working-directory: ./src/fneparrot
       run: dotnet restore
     - name: FNEParrot Build
       working-directory: ./src/fneparrot
       run: dotnet publish -r win-x64 -c Release
+    - name: FNEParrot Package
+      working-directory: ./src/fneparrot/
+      run: zip FNEParrot-Win64.zip bin/Release/netcoreapp3.1/win-x64/publish/*
     - name: 'Upload Parrot'
       uses: actions/upload-artifact@v3
       with:
-        name: parrot-windows_x64
-        path: fneparrot/bin/Release/netcoreapp3.1/win-x64/publish
+        name: FNEParrot-Win64.zip
+        path: ./src/fneparrot/
         retention-days: 5
 #    - name: 'Upload Monitor'
 #      uses: actions/upload-artifact@v3
