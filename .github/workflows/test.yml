@@ -1,4 +1,4 @@
-name: Build FNE2
+name: Test FNE2
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ "master" ]
 
 jobs:
-  test-linux:
+  test-linux-router:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -16,13 +16,35 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name: Restore dependencies
+      working-directory: ./src/fnerouter
       run: dotnet restore
     - name: Build
+      working-directory: ./src/fnerouter
       run: dotnet build
     - name: Test
+      working-directory: ./src/fnerouter
+      run: dotnet test
+
+  jobs:
+  test-linux-parrot:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      working-directory: ./src/fneparrot
+      run: dotnet restore
+    - name: Build
+      working-directory: ./src/fneparrot
+      run: dotnet build
+    - name: Test
+      working-directory: ./src/fneparrot
       run: dotnet test
       
-  test-windows:
+  test-windows-router:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v3
@@ -31,8 +53,29 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name: Restore dependencies
+      working-directory: ./src/fnerouter
       run: dotnet restore
     - name: Build
+      working-directory: ./src/fnerouter
       run: dotnet build
     - name: Test
+      working-directory: ./src/fnerouter
+      run: dotnet test
+  
+  test-windows-parrot:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      working-directory: ./src/fneparrot
+      run: dotnet restore
+    - name: Build
+      working-directory: ./src/fneparrot
+      run: dotnet build
+    - name: Test
+      working-directory: ./src/fneparrot
       run: dotnet test
