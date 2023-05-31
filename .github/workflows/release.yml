@@ -15,28 +15,37 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
-    - name: Restore dependencies
+    - name: FNERouter Restore dependencies
+      working-directory: ./src/fnerouter
       run: dotnet restore
-    - name: Build
+    - name: FNERouter Build
+      working-directory: ./src/fnerouter
       run: dotnet publish -r linux-x64 -c Release
     - name: 'Upload Router'
+      working-directory: ./src/fnerouter
       uses: actions/upload-artifact@v3
       with:
         name: router-linux_x64
         path: fnerouter/bin/Release/netcoreapp3.1/linux-x64/publish
         retention-days: 5
+    - name: FNEParrot Restore dependencies
+      working-directory: ./src/fneparrot
+      run: dotnet restore
+    - name: FNEParrot Build
+      working-directory: ./src/fneparrot
+      run: dotnet publish -r linux-x64 -c Release
     - name: 'Upload Parrot'
       uses: actions/upload-artifact@v3
       with:
         name: parrot-linux_x64
         path: fneparrot/bin/Release/netcoreapp3.1/linux-x64/publish
         retention-days: 5
-    - name: 'Upload Monitor'
-      uses: actions/upload-artifact@v3
-      with:
-        name: monitor-linux_x64
-        path: fnemonitor/bin/Release/net6.0/linux-x64/publish
-        retention-days: 5
+#    - name: 'Upload Monitor'
+#      uses: actions/upload-artifact@v3
+#      with:
+#        name: monitor-linux_x64
+#        path: fnemonitor/bin/Release/net6.0/linux-x64/publish
+#        retention-days: 5
     
   publish-linux-arm64:
     runs-on: ubuntu-latest
@@ -46,9 +55,11 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
-    - name: Restore dependencies
+    - name: FNERouter Restore dependencies
+      working-directory: ./src/fnerouter
       run: dotnet restore
-    - name: Build
+    - name: FNERouter Build
+      working-directory: ./src/fnerouter
       run: dotnet publish -r linux-arm64 -c Release
     - name: 'Upload Router'
       uses: actions/upload-artifact@v3
@@ -56,18 +67,24 @@ jobs:
         name: router-linux_arm64
         path: fnerouter/bin/Release/netcoreapp3.1/linux-arm64/publish
         retention-days: 5
+    - name: FNEParrot Restore dependencies
+      working-directory: ./src/fneparrot
+      run: dotnet restore
+    - name: FNEParrot Build
+      working-directory: ./src/fneparrot
+      run: dotnet publish -r linux-arm64 -c Release
     - name: 'Upload Parrot'
       uses: actions/upload-artifact@v3
       with:
         name: parrot-linux_arm64
         path: fneparrot/bin/Release/netcoreapp3.1/linux-arm64/publish
         retention-days: 5
-    - name: 'Upload Monitor'
-      uses: actions/upload-artifact@v3
-      with:
-        name: monitor-linux_arm64
-        path: fnemonitor/bin/Release/net6.0/linux-arm64/publish
-        retention-days: 5
+#    - name: 'Upload Monitor'
+#      uses: actions/upload-artifact@v3
+#      with:
+#        name: monitor-linux_arm64
+#        path: fnemonitor/bin/Release/net6.0/linux-arm64/publish
+#        retention-days: 5
       
   publish-windows-x64:
     runs-on: windows-latest
@@ -77,9 +94,11 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
-    - name: Restore dependencies
+    - name: FNERouter Restore dependencies
+      working-directory: ./src/fnerouter
       run: dotnet restore
-    - name: Build
+    - name: FNERouter Build
+      working-directory: ./src/fnerouter
       run: dotnet publish -r win-x64 -c Release
     - name: 'Upload Router'
       uses: actions/upload-artifact@v3
@@ -87,15 +106,21 @@ jobs:
         name: router-windows_x64
         path: fnerouter/bin/Release/netcoreapp3.1/win-x64/publish
         retention-days: 5
+    - name: FNEParrot Restore dependencies
+      working-directory: ./src/fneparrot
+      run: dotnet restore
+    - name: FNEParrot Build
+      working-directory: ./src/fneparrot
+      run: dotnet publish -r win-x64 -c Release
     - name: 'Upload Parrot'
       uses: actions/upload-artifact@v3
       with:
         name: parrot-windows_x64
         path: fneparrot/bin/Release/netcoreapp3.1/win-x64/publish
         retention-days: 5
-    - name: 'Upload Monitor'
-      uses: actions/upload-artifact@v3
-      with:
-        name: monitor-windows_x64
-        path: fnemonitor/bin/Release/net6.0/win-x64/publish
-        retention-days: 5
+#    - name: 'Upload Monitor'
+#      uses: actions/upload-artifact@v3
+#      with:
+#        name: monitor-windows_x64
+#        path: fnemonitor/bin/Release/net6.0/win-x64/publish
+#        retention-days: 5
