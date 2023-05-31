@@ -113,6 +113,7 @@ jobs:
       run: dotnet publish -r win-x64 -c Release
     - name: FNERouter Package
       working-directory: ./src/fnerouter/
+      uses: actions/checkout@v1
       run: zip FNERouter-Win64.zip bin/Release/netcoreapp3.1/win-x64/publish/*
     - name: 'Upload Router'
       uses: actions/upload-artifact@v3
@@ -128,6 +129,7 @@ jobs:
       working-directory: ./src/fneparrot
       run: dotnet publish -r win-x64 -c Release
     - name: FNEParrot Package
+      uses: actions/checkout@v1
       working-directory: ./src/fneparrot/
       run: zip FNEParrot-Win64.zip bin/Release/netcoreapp3.1/win-x64/publish/*
     - name: 'Upload Parrot'
