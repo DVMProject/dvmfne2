@@ -10,7 +10,7 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build-linux:
+  build-linux-router:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -25,7 +25,7 @@ jobs:
       working-directory: ./src/fnerouter
       run: dotnet build
       
-  build-windows:
+  build-windows-router:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v3
