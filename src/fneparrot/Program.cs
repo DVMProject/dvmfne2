@@ -100,7 +100,7 @@ namespace fneparrot
             Console.WriteLine(AssemblyVersion._COPYRIGHT + "., All Rights Reserved.");
             Console.WriteLine();
 
-            Console.WriteLine(string.Format("usage: {0} [-h | --help] [-c | --config <path to configuration file>] ",
+            Console.WriteLine(string.Format("usage: {0} [-h | --help] [-c | --config <path to configuration file>] [-l | --log-on-console]",
                 Path.GetFileNameWithoutExtension(fileName)));
             Console.WriteLine();
             Console.WriteLine("Options:");
@@ -139,7 +139,7 @@ namespace fneparrot
             {
                 { "h|help", "show this message and exit", v => showHelp = v != null },
                 { "c=|config=", "sets the path to the configuration file", v => configFile = v },
-                { "log-on-console", "shows log on console", v => showLogOnConsole = v != null },
+                { "l|log-on-console", "shows log on console", v => showLogOnConsole = v != null },
             };
 
             // attempt to parse the commandline
