@@ -316,6 +316,9 @@ namespace fnecore
                     {
                         uint peerId = fneHeader.PeerID;
 
+                        if (streamId != fneHeader.StreamID)
+                            pktSeq(true);
+
                         // update current peer stream ID
                         streamId = fneHeader.StreamID;
 
