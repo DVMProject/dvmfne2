@@ -61,6 +61,7 @@ namespace fnecore
         private PeerInformation info;
         private IPEndPoint masterEndpoint = null;
 
+        private ushort currPktSeq = 0;
         private uint streamId = 0;
 
         /*
@@ -243,7 +244,7 @@ namespace fnecore
             Send(new UdpFrame()
             {
                 Endpoint = masterEndpoint,
-                Message = WriteFrame(message, peerId, opcode, streamId)
+                Message = WriteFrame(message, peerId, opcode, pktSeq(), streamId)
             });
         }
 
@@ -256,6 +257,27 @@ namespace fnecore
         public void SendMasterTagged(Tuple<byte, byte> opcode, string tag, byte[] message)
         {
             SendMaster(opcode, Response(tag, message));
+        }
+
+        /// <summary>
+        /// Helper to update the RTP packet sequence.
+        /// </summary>
+        /// <param name="reset"></param>
+        /// <returns>RTP packet sequence.</returns>
+        public ushort pktSeq(bool reset = false)
+        {
+            if (reset)
+            {
+                currPktSeq = 0;
+                return currPktSeq;
+            }
+
+            ushort curr = currPktSeq;
+            ++currPktSeq;
+            if (currPktSeq > ushort.MaxValue)
+                currPktSeq = 0;
+
+            return curr;
         }
 
         /// <summary>

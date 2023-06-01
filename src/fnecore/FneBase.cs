@@ -554,7 +554,7 @@ namespace fnecore
         /// <summary>
         /// Helper to pack a peer ID into a byte array.
         /// </summary>
-        /// <param name="peerId"></param>
+        /// <param name="peerId">Peer ID.</param>
         /// <returns></returns>
         protected byte[] PackPeerId(uint peerId)
         {
@@ -592,11 +592,10 @@ namespace fnecore
         /// <summary>
         /// Helper to read and process a FNE RTP frame.
         /// </summary>
-        /// <param name="frame"></param>
-        /// <param name="message"></param>
-        /// <param name="messageLength"></param>
-        /// <param name="rtpHeader"></param>
-        /// <param name="fneHeader"></param>
+        /// <param name="frame">Raw UDP socket frame.</param>
+        /// <param name="messageLength">Length of payload message.</param>
+        /// <param name="rtpHeader">RTP Header.</param>
+        /// <param name="fneHeader">RTP FNE Header.</param>
         protected byte[] ReadFrame(UdpFrame frame, out int messageLength, out RtpHeader rtpHeader, out RtpFNEHeader fneHeader)
         {
             int length = frame.Message.Length;
@@ -615,7 +614,7 @@ namespace fnecore
                 }
 
                 // decode RTP header
-                rtpHeader = new RtpHeader(true);
+                rtpHeader = new RtpHeader();
                 if (!rtpHeader.Decode(frame.Message))
                 {
                     Log(LogLevel.ERROR, $"Invalid RTP packet received from network");
@@ -667,8 +666,13 @@ namespace fnecore
         /// <summary>
         /// Helper to generate and write a FNE RTP frame.
         /// </summary>
+        /// <param name="message">Payload message.</param>
+        /// <param name="peerId">Peer ID.</param>
+        /// <param name="opcode">FNE Network Opcode.</param>
+        /// <param name="pktSeq">RTP Packet Sequence.</param>
+        /// <param name="streamId">Stream ID.</param>
         /// <returns></returns>
-        protected byte[] WriteFrame(byte[] message, uint peerId, Tuple<byte, byte> opcode, uint streamId)
+        protected byte[] WriteFrame(byte[] message, uint peerId, Tuple<byte, byte> opcode, ushort pktSeq, uint streamId)
         {
             byte[] buffer = new byte[message.Length + Constants.RtpHeaderLengthBytes + Constants.RtpExtensionHeaderLengthBytes + Constants.RtpFNEHeaderLengthBytes];
             FneUtils.Memset(buffer, 0, buffer.Length);
@@ -676,6 +680,7 @@ namespace fnecore
             RtpHeader header = new RtpHeader();
             header.Extension = true;
             header.PayloadType = Constants.DVMRtpPayloadType;
+            header.Sequence = pktSeq;
             header.SSRC = streamId;
 
             header.Encode(ref buffer);

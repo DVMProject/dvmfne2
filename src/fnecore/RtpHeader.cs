@@ -31,12 +31,10 @@ namespace fnecore
     {
         private Random rand;
         private static DateTime start = DateTime.Now;
-        private static ushort currSequence = 0;
 
         private byte version;
         private bool padding;
         private byte cc;
-        private ushort seq;
 
         /// <summary>
         /// RTP Protocol Version.
@@ -71,7 +69,7 @@ namespace fnecore
         /// <summary>
         /// Sequence number for the RTP packet.
         /// </summary>
-        public ushort Sequence { get => seq; }
+        public ushort Sequence { get; set; }
 
         /// <summary>
         /// RTP packet timestamp.
@@ -90,7 +88,7 @@ namespace fnecore
         /// Initializes a new instance of the <see cref="RtpHeader"/> class.
         /// </summary>
         /// <param name="noIncrement"></param>
-        public RtpHeader(bool noIncrement = false)
+        public RtpHeader()
         {
             // bryanb: this isn't perfect -- but we don't need cryptographically
             // secure numbers
@@ -102,19 +100,9 @@ namespace fnecore
             cc = 0;
             Marker = false;
             PayloadType = 0;
-            seq = 0;
+            Sequence = 0;
             Timestamp = Constants.InvalidTS;
             SSRC = 0;
-
-            if (!noIncrement)
-            {
-                seq = currSequence;
-                ++currSequence;
-                if (currSequence > ushort.MaxValue)
-                {
-                    currSequence = 0;
-                }
-            }
         }
 
         /// <summary>
@@ -138,7 +126,7 @@ namespace fnecore
             cc = (byte)(data[0] & 0x0F);                                        // CSRC Count
             Marker = ((data[1] & 0x80) == 0x80U);                               // Marker Flag
             PayloadType = (byte)(data[1] & 0x7F);                               // Payload Type
-            seq = (ushort)((data[2] << 8) | (data[3] << 0));                    // Sequence
+            Sequence = (ushort)((data[2] << 8) | (data[3] << 0));               // Sequence
 
             Timestamp = FneUtils.ToUInt32(data, 4);                             // Timestamp
             SSRC = FneUtils.ToUInt32(data, 6);                                  // Synchronization Source ID
@@ -161,8 +149,8 @@ namespace fnecore
                 (cc & 0x0FU));                                                  // CSRC Count
             data[1] = (byte)((Marker ? 0x80U : 0x00U) +                         // Marker Flag
                 (PayloadType & 0x7FU));                                         // Payload Type
-            data[2] = (byte)((seq >> 8) & 0xFFU);                               // Sequence MSB
-            data[3] = (byte)((seq >> 0) & 0xFFU);                               // Sequence LSB
+            data[2] = (byte)((Sequence >> 8) & 0xFFU);                          // Sequence MSB
+            data[3] = (byte)((Sequence >> 0) & 0xFFU);                          // Sequence LSB
 
             if (Timestamp == Constants.InvalidTS) {
                 TimeSpan timeSinceStart = DateTime.Now - start;

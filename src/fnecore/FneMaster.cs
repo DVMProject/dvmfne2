@@ -144,6 +144,15 @@ namespace fnecore
         public uint StreamID;
 
         /// <summary>
+        /// RTP Packet Sequence
+        /// </summary>
+        public ushort PacketSequence;
+        /// <summary>
+        /// Next expected RTP Packet Sequence
+        /// </summary>
+        public ushort NextPacketSequence;
+
+        /// <summary>
         /// Peer IP EndPoint
         /// </summary>
         public IPEndPoint EndPoint;
@@ -540,7 +549,7 @@ namespace fnecore
         {
             if (peers.ContainsKey(peerId))
             {
-                byte[] data = WriteFrame(message, peerId, opcode, peers[peerId].StreamID);
+                byte[] data = WriteFrame(message, peerId, opcode, peers[peerId].PacketSequence, peers[peerId].StreamID);
                 SendPeer(peers[peerId].EndPoint, data);
             }
         }
@@ -555,7 +564,7 @@ namespace fnecore
         /// <param name="message">Byte array containing message to send</param>
         public void SendPeerTagged(IPEndPoint endpoint, uint peerId, Tuple<byte, byte> opcode, string tag, byte[] message)
         {
-            byte[] frame = WriteFrame(Response(tag, message), peerId, opcode, CreateStreamID());
+            byte[] frame = WriteFrame(Response(tag, message), peerId, opcode, 0, CreateStreamID());
             SendPeer(endpoint, frame);
         }
 
@@ -612,7 +621,7 @@ namespace fnecore
             Send(new UdpFrame()
             {
                 Endpoint = endpoint,
-                Message = WriteFrame(resp, peerId, CreateOpcode(Constants.NET_FUNC_NAK), CreateStreamID())
+                Message = WriteFrame(resp, peerId, CreateOpcode(Constants.NET_FUNC_NAK), 0, CreateStreamID())
             });
             Log(LogLevel.WARNING, $"({systemName}) {tag} from unconnected PEER {endpoint.Address.ToString()}:{endpoint.Port}");
         }
@@ -626,7 +635,7 @@ namespace fnecore
         {
             foreach (PeerInformation peer in peers.Values)
             {
-                byte[] data = WriteFrame(message, peer.PeerID, opcode, peer.StreamID);
+                byte[] data = WriteFrame(message, peer.PeerID, opcode, peer.PacketSequence, peer.StreamID);
                 SendAsync(new UdpFrame()
                 {
                     Endpoint = peer.EndPoint,
@@ -718,7 +727,18 @@ namespace fnecore
 
                     // update current peer stream ID
                     if (peerId > 0 && peers.ContainsKey(peerId))
-                        peers[peerId].StreamID = fneHeader.StreamID;
+                    {
+                        ushort pktSeq = peers[peerId].PacketSequence;
+
+                        if ((peers[peerId].StreamID == streamId) && (pktSeq != peers[peerId].NextPacketSequence))
+                            Log(LogLevel.WARNING, $"({systemName}) PEER {peerId} Stream {streamId} out-of-sequence; {pktSeq} != {peers[peerId].NextPacketSequence}");
+
+                        peers[peerId].StreamID = streamId;
+                        peers[peerId].PacketSequence = pktSeq;
+                        peers[peerId].NextPacketSequence = (ushort)(pktSeq + 1);
+                        if (peers[peerId].NextPacketSequence > ushort.MaxValue)
+                            peers[peerId].NextPacketSequence = 0;
+                    }
 
                     // process incoming message frame opcodes
                     switch (fneHeader.Function)
