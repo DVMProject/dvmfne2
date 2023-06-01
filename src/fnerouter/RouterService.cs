@@ -521,6 +521,7 @@ namespace fnerouter
             {
                 TextWriter writer = new StreamWriter(activityLog);
                 writer.WriteLine($"{peerId} {message}");
+                writer.Flush();
             }
         }
 
@@ -581,6 +582,7 @@ namespace fnerouter
 
             TextWriter writer = new StreamWriter(peerDiagLog[peerId]);
             writer.WriteLine($"{peerId} {message}");
+            writer.Flush();
         }
 
         /// <summary>

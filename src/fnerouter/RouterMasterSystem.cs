@@ -281,8 +281,6 @@ namespace fnerouter
                     offs += 5;
                 }
 
-                Log.Logger.Information($"{FneUtils.HexDump(data, 0)}");
-
                 master.SendPeerTagged(peerId, FneBase.CreateOpcode(Constants.NET_FUNC_MASTER, Constants.NET_MASTER_SUBFUNC_ACTIVE_TGS), Constants.TAG_MASTER_ACTIVE_TGS, data, true);
             }
         }
