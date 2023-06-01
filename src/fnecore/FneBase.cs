@@ -629,7 +629,8 @@ namespace fnecore
                 }
 
                 // ensure payload type is correct
-                if (rtpHeader.PayloadType != Constants.DVMRtpPayloadType)
+                if ((rtpHeader.PayloadType != Constants.DVMRtpPayloadType) &&
+                    (rtpHeader.PayloadType != Constants.DVMRtpControlPayloadType))
                 {
                     Log(LogLevel.ERROR, "Invalid RTP payload type received from network");
                     return null;

@@ -150,6 +150,7 @@ namespace fnecore
         public const uint RtpGenericClockRate = 8000;
 
         public const byte DVMRtpPayloadType = 0x56;
+        public const byte DVMRtpControlPayloadType = 0x57;
         public const byte DVMFrameStart = 0xFE;
 
         /*

@@ -730,7 +730,7 @@ namespace fnecore
                     uint streamId = fneHeader.StreamID;
 
                     // update current peer stream ID
-                    if (peerId > 0 && peers.ContainsKey(peerId))
+                    if (peerId > 0 && peers.ContainsKey(peerId) && streamId != 0)
                     {
                         ushort pktSeq = peers[peerId].PacketSequence;
 
@@ -742,6 +742,13 @@ namespace fnecore
                         peers[peerId].NextPacketSequence = (ushort)(pktSeq + 1);
                         if (peers[peerId].NextPacketSequence > ushort.MaxValue)
                             peers[peerId].NextPacketSequence = 0;
+                    }
+
+                    // if we don't have a stream ID and are receiving call data -- throw an error and discard
+                    if (streamId == 0 && fneHeader.Function == Constants.NET_FUNC_PROTOCOL)
+                    {
+                        Log(LogLevel.ERROR, $"({systemName}) PEER {peerId} Malformed packet (no stream ID for call?)");
+                        continue;
                     }
 
                     // process incoming message frame opcodes
