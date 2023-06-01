@@ -588,6 +588,8 @@ namespace fnecore
         {
             if (peers.ContainsKey(peerId))
             {
+                peers[peerId].PacketSequence = ++peers[peerId].PacketSequence;
+
                 // send ping response to peer
                 SendPeerTagged(peerId, CreateOpcode(Constants.NET_FUNC_ACK), 
                     Constants.TAG_REPEATER_ACK, PackPeerId(peerId));
@@ -603,6 +605,8 @@ namespace fnecore
         {
             if (peers.ContainsKey(peerId))
             {
+                peers[peerId].PacketSequence = ++peers[peerId].PacketSequence;
+
                 // send ping response to peer
                 SendPeerTagged(peerId, CreateOpcode(Constants.NET_FUNC_NAK),
                     Constants.TAG_MASTER_NAK, PackPeerId(peerId));
@@ -1138,6 +1142,7 @@ namespace fnecore
                                         PeerInformation peer = peers[peerId];
                                         peer.PingsReceived++;
                                         peer.LastPing = DateTime.Now;
+                                        peer.PacketSequence = ++peer.PacketSequence;
 
                                         peers[peerId] = peer;
 
