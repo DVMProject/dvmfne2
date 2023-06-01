@@ -545,6 +545,22 @@ namespace fnecore
         /// <param name="peerId">Peer ID</param>
         /// <param name="opcode">Opcode</param>
         /// <param name="message">Byte array containing message to send</param>
+        /// <param name="pktSeq"></param>
+        public void SendPeer(uint peerId, Tuple<byte, byte> opcode, byte[] message, ushort pktSeq)
+        {
+            if (peers.ContainsKey(peerId))
+            {
+                byte[] data = WriteFrame(message, peerId, opcode, pktSeq, peers[peerId].StreamID);
+                SendPeer(peers[peerId].EndPoint, data);
+            }
+        }
+
+        /// <summary>
+        /// Helper to send a raw message to the specified peer.
+        /// </summary>
+        /// <param name="peerId">Peer ID</param>
+        /// <param name="opcode">Opcode</param>
+        /// <param name="message">Byte array containing message to send</param>
         /// <param name="incPktSeq"></param>
         public void SendPeer(uint peerId, Tuple<byte, byte> opcode, byte[] message, bool incPktSeq = false)
         {
@@ -554,8 +570,7 @@ namespace fnecore
                     peers[peerId].PacketSequence = ++peers[peerId].PacketSequence;
                 }
 
-                byte[] data = WriteFrame(message, peerId, opcode, peers[peerId].PacketSequence, peers[peerId].StreamID);
-                SendPeer(peers[peerId].EndPoint, data);
+                SendPeer(peerId, opcode, message, peers[peerId].PacketSequence);
             }
         }
 
@@ -792,7 +807,7 @@ namespace fnecore
 
                                             byte n = (byte)(bits & 0xF);
 #if DEBUG
-                                            Log(LogLevel.DEBUG, $"{systemName} DMRD: SRC_PEER {peerId} SRC_ID {srcId} DST_ID {dstId} TS {slot} [STREAM ID {streamId}]");
+                                            Log(LogLevel.DEBUG, $"{systemName} DMRD: SRC_PEER {peerId} SRC_ID {srcId} DST_ID {dstId} TS {slot} [STREAM ID {streamId}] PKT SEQ {rtpHeader.Sequence}");
 #endif
                                             // is the stream valid?
                                             bool ret = true;
@@ -826,8 +841,8 @@ namespace fnecore
 
                                                             if (!ret)
                                                             {
-                                                                SendPeer(kvp.Key, CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_DMR), message);
-                                                                Log(LogLevel.DEBUG, $"{systemName} DMRD: Packet TS {slot} SRC_PEER {peerId} DST_ID {dstId} DST_PEER {kvp.Key} [STREAM ID {streamId}]");
+                                                                SendPeer(kvp.Key, CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_DMR), message, rtpHeader.Sequence);
+                                                                Log(LogLevel.DEBUG, $"{systemName} DMRD: Packet TS {slot} SRC_PEER {peerId} DST_ID {dstId} DST_PEER {kvp.Key} [STREAM ID {streamId}] PKT SEQ {rtpHeader.Sequence}");
                                                             }
                                                         }
                                                     }
@@ -854,7 +869,7 @@ namespace fnecore
                                             P25DUID duid = (P25DUID)message[22];
                                             FrameType frameType = ((duid != P25DUID.TDU) && (duid != P25DUID.TDULC)) ? FrameType.VOICE : FrameType.TERMINATOR;
 #if DEBUG
-                                            Log(LogLevel.DEBUG, $"{systemName} P25D: SRC_PEER {peerId} SRC_ID {srcId} DST_ID {dstId} [STREAM ID {streamId}]");
+                                            Log(LogLevel.DEBUG, $"{systemName} P25D: SRC_PEER {peerId} SRC_ID {srcId} DST_ID {dstId} [STREAM ID {streamId}] PKT SEQ {rtpHeader.Sequence}");
 #endif
                                             // is the stream valid?
                                             bool ret = true;
@@ -891,8 +906,8 @@ namespace fnecore
 
                                                             if (!ret)
                                                             {
-                                                                SendPeer(kvp.Key, CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_P25), message);
-                                                                Log(LogLevel.DEBUG, $"{systemName} P25D: Packet SRC_PEER {peerId} DST_ID {dstId} DST_PEER {kvp.Key} [STREAM ID {streamId}]");
+                                                                SendPeer(kvp.Key, CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_P25), message, rtpHeader.Sequence);
+                                                                Log(LogLevel.DEBUG, $"{systemName} P25D: Packet SRC_PEER {peerId} DST_ID {dstId} DST_PEER {kvp.Key} [STREAM ID {streamId}] PKT SEQ {rtpHeader.Sequence}");
                                                             }
                                                         }
                                                     }
@@ -921,7 +936,7 @@ namespace fnecore
                                             CallType callType = ((bits & 0x40) == 0x40) ? CallType.PRIVATE : CallType.GROUP;
                                             FrameType frameType = (messageType != NXDNMessageType.MESSAGE_TYPE_TX_REL) ? FrameType.VOICE : FrameType.TERMINATOR;
 #if DEBUG
-                                            Log(LogLevel.DEBUG, $"{systemName} NXDD: SRC_PEER {peerId} SRC_ID {srcId} DST_ID {dstId} [STREAM ID {streamId}]");
+                                            Log(LogLevel.DEBUG, $"{systemName} NXDD: SRC_PEER {peerId} SRC_ID {srcId} DST_ID {dstId} [STREAM ID {streamId}] PKT SEQ {rtpHeader.Sequence}");
 #endif
                                             // is the stream valid?
                                             bool ret = true;
@@ -955,8 +970,8 @@ namespace fnecore
 
                                                             if (!ret)
                                                             {
-                                                                SendPeer(kvp.Key, CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_NXDN), message);
-                                                                Log(LogLevel.DEBUG, $"{systemName} NXDD: Packet SRC_PEER {peerId} DST_ID {dstId} DST_PEER {kvp.Key} [STREAM ID {streamId}]");
+                                                                SendPeer(kvp.Key, CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_NXDN), message, rtpHeader.Sequence);
+                                                                Log(LogLevel.DEBUG, $"{systemName} NXDD: Packet SRC_PEER {peerId} DST_ID {dstId} DST_PEER {kvp.Key} [STREAM ID {streamId}] PKT SEQ {rtpHeader.Sequence}");
                                                             }
                                                         }
                                                     }
@@ -1167,7 +1182,7 @@ namespace fnecore
                                         PeerInformation peer = peers[peerId];
                                         peer.PingsReceived++;
                                         peer.LastPing = DateTime.Now;
-                                        peer.PacketSequence = ++peer.PacketSequence;
+                                        //peer.PacketSequence = ++peer.PacketSequence;
 
                                         peers[peerId] = peer;
 
