@@ -30,7 +30,7 @@ using System.Reflection;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("DVMProject Authors")]
 [assembly: AssemblyProduct("Digital Voice Modem FNE Router")]
-[assembly: AssemblyCopyright("Copyright (c) 2022 PLL Communications LLC and DVMProject Authors")]
+[assembly: AssemblyCopyright("Copyright (c) 2023 Bryan Biedenkapp N2PLL and DVMProject Authors")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

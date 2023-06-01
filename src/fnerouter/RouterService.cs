@@ -133,19 +133,29 @@ namespace fnerouter
             // initialize master systems
             foreach (ConfigMasterObject masterConfig in masterConfigs)
             {
-                Log.Logger.Information($"[Router Service] MASTER: REGISTER SYSTEM {masterConfig.Name}");
-                RouterMasterSystem system = new RouterMasterSystem(this, masterConfig);
-                systems.Add(system);
-                system.Start();
+                if (masterConfig.Enabled)
+                {
+                    Log.Logger.Information($"[Router Service] MASTER: REGISTER SYSTEM {masterConfig.Name}");
+                    RouterMasterSystem system = new RouterMasterSystem(this, masterConfig);
+                    systems.Add(system);
+                    system.Start();
+                }
+                else
+                    Log.Logger.Information($"[Router Service] MASTER: SYSTEM {masterConfig.Name} NOT REGISTERED (DISABLED)");
             }
 
             // initialize peer systems
             foreach (ConfigPeerObject peerConfig in peerConfigs)
             {
-                Log.Logger.Information($"[Router Service] PEER: REGISTER SYSTEM {peerConfig.Name}");
-                RouterPeerSystem system = new RouterPeerSystem(this, peerConfig);
-                systems.Add(system);
-                system.Start();
+                if (peerConfig.Enabled)
+                {
+                    Log.Logger.Information($"[Router Service] PEER: REGISTER SYSTEM {peerConfig.Name}");
+                    RouterPeerSystem system = new RouterPeerSystem(this, peerConfig);
+                    systems.Add(system);
+                    system.Start();
+                }
+                else
+                    Log.Logger.Information($"[Router Service] PEER: SYSTEM {peerConfig.Name} NOT REGISTERED (DISABLED)");
             }
 
             return base.StartAsync(cancellationToken);

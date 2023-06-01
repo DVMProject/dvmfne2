@@ -67,10 +67,15 @@ namespace fneparrot
             // initialize master systems
             foreach (ConfigMasterObject masterConfig in Masters)
             {
-                Log.Logger.Information($"[Parrot Service] MASTER: REGISTER SYSTEM {masterConfig.Name}");
-                MasterSystem system = new MasterSystem(masterConfig);
-                systems.Add(system);
-                system.Start();
+                if (masterConfig.Enabled)
+                {
+                    Log.Logger.Information($"[Parrot Service] MASTER: REGISTER SYSTEM {masterConfig.Name}");
+                    MasterSystem system = new MasterSystem(masterConfig);
+                    systems.Add(system);
+                    system.Start();
+                }
+                else
+                    Log.Logger.Information($"[Parrot Service] MASTER: SYSTEM {masterConfig.Name} NOT REGISTERED (DISABLED)");
             }
 
             return base.StartAsync(cancellationToken);

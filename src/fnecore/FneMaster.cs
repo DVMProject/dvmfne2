@@ -545,10 +545,15 @@ namespace fnecore
         /// <param name="peerId">Peer ID</param>
         /// <param name="opcode">Opcode</param>
         /// <param name="message">Byte array containing message to send</param>
-        public void SendPeer(uint peerId, Tuple<byte, byte> opcode, byte[] message)
+        /// <param name="incPktSeq"></param>
+        public void SendPeer(uint peerId, Tuple<byte, byte> opcode, byte[] message, bool incPktSeq = false)
         {
             if (peers.ContainsKey(peerId))
             {
+                if (incPktSeq) {
+                    peers[peerId].PacketSequence = ++peers[peerId].PacketSequence;
+                }
+
                 byte[] data = WriteFrame(message, peerId, opcode, peers[peerId].PacketSequence, peers[peerId].StreamID);
                 SendPeer(peers[peerId].EndPoint, data);
             }
@@ -562,9 +567,12 @@ namespace fnecore
         /// <param name="opcode">Opcode</param>
         /// <param name="tag">Tag from <see cref="Constants"/></param>
         /// <param name="message">Byte array containing message to send</param>
-        public void SendPeerTagged(IPEndPoint endpoint, uint peerId, Tuple<byte, byte> opcode, string tag, byte[] message)
+        /// <param name="pktSeq"></param>
+        /// <param name="streamId"></param>
+        public void SendPeerTagged(IPEndPoint endpoint, uint peerId, Tuple<byte, byte> opcode, string tag, 
+            ushort pktSeq, uint streamId, byte[] message)
         {
-            byte[] frame = WriteFrame(Response(tag, message), peerId, opcode, 0, CreateStreamID());
+            byte[] frame = WriteFrame(Response(tag, message), peerId, opcode, pktSeq, streamId);
             SendPeer(endpoint, frame);
         }
 
@@ -575,9 +583,10 @@ namespace fnecore
         /// <param name="opcode">Opcode</param>
         /// <param name="tag">Tag from <see cref="Constants"/></param>
         /// <param name="message">Byte array containing message to send</param>
-        public void SendPeerTagged(uint peerId, Tuple<byte, byte> opcode, string tag, byte[] message)
+        /// <param name="incPktSeq"></param>
+        public void SendPeerTagged(uint peerId, Tuple<byte, byte> opcode, string tag, byte[] message, bool incPktSeq = false)
         {
-            SendPeer(peerId, opcode, Response(tag, message));
+            SendPeer(peerId, opcode, Response(tag, message), incPktSeq);
         }
 
         /// <summary>
@@ -737,7 +746,7 @@ namespace fnecore
                     // update current peer stream ID
                     if (peerId > 0 && peers.ContainsKey(peerId) && streamId != 0)
                     {
-                        ushort pktSeq = peers[peerId].PacketSequence;
+                        ushort pktSeq = rtpHeader.Sequence;
 
                         if ((peers[peerId].StreamID == streamId) && (pktSeq != peers[peerId].NextPacketSequence))
                             Log(LogLevel.WARNING, $"({systemName}) PEER {peerId} Stream {streamId} out-of-sequence; {pktSeq} != {peers[peerId].NextPacketSequence}");
@@ -973,6 +982,9 @@ namespace fnecore
                                     PeerInformation info = new PeerInformation();
                                     info.PeerID = peerId;
                                     info.EndPoint = frame.Endpoint;
+                                    info.PacketSequence = rtpHeader.Sequence;
+                                    info.NextPacketSequence = ++rtpHeader.Sequence;
+                                    info.StreamID = streamId;
 
                                     info.Salt = (uint)rand.Next(-2147483648, 2147483647);
 
@@ -980,7 +992,8 @@ namespace fnecore
 
                                     byte[] salt = new byte[4];
                                     FneUtils.WriteBytes(info.Salt, ref salt, 0);
-                                    SendPeerTagged(frame.Endpoint, peerId, CreateOpcode(Constants.NET_FUNC_ACK), Constants.TAG_REPEATER_ACK, salt);
+                                    SendPeerTagged(frame.Endpoint, peerId, CreateOpcode(Constants.NET_FUNC_ACK), Constants.TAG_REPEATER_ACK,
+                                        ++info.PacketSequence, streamId, salt);
 
                                     info.State = ConnectionState.WAITING_AUTHORISATION;
                                     peers.Add(peerId, info);
