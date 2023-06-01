@@ -304,6 +304,11 @@ namespace fnecore
                     RtpFNEHeader fneHeader;
                     int messageLength = 0;
                     byte[] message = ReadFrame(frame, out messageLength, out rtpHeader, out fneHeader);
+                    if (message == null)
+                    {
+                        Log(LogLevel.ERROR, $"({systemName}) Malformed packet (from {frame.Endpoint}); failed to decode RTP frame");
+                        continue;
+                    }
 
                     if (message.Length < 4)
                     {
