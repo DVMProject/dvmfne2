@@ -608,7 +608,7 @@ namespace fnecore
             {
                 if (length < Constants.RtpHeaderLengthBytes + Constants.RtpExtensionHeaderLengthBytes)
                 {
-                    Log(LogLevel.ERROR, $"Message received from ntework is malformed! " +
+                    Log(LogLevel.ERROR, $"Message received from network is malformed! " +
                         $"{Constants.RtpHeaderLengthBytes + Constants.RtpExtensionHeaderLengthBytes} bytes != {frame.Message.Length} bytes");
                     return null;
                 }
