@@ -1187,7 +1187,7 @@ namespace fnecore
                                         peers[peerId] = peer;
 
                                         // send ping response to peer
-                                        SendPeerTagged(peerId, CreateOpcode(Constants.NET_FUNC_PONG), Constants.TAG_MASTER_PONG, PackPeerId(peerId));
+                                        SendPeerTagged(peerId, CreateOpcode(Constants.NET_FUNC_PONG), Constants.TAG_MASTER_PONG, PackPeerId(peerId), true);
                                         Log(LogLevel.DEBUG, $"({systemName}) Received and answered RPTPING from PEER {peerId}");
                                     }
                                     else
