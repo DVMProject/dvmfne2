@@ -397,7 +397,7 @@ namespace fnerouter
                 {
                     // if the group voice ignored list contains a peer ID of 0; we treat this talkgroup
                     // as requiring affiliations to route traffic
-                    if (groupVoice.Config.Ignored.Contains(0))
+                    if (groupVoice.Config.Affiliated && groupVoice.Config.Ignored.Contains(0))
                     {
                         // check affiliations against this group
                         RoutingRuleGroupVoice aff = allowAffTGIDs.Find((x) => x.Source.Tgid == dstId);
@@ -408,6 +408,11 @@ namespace fnerouter
                                     if (groupAffiliatons[peerId][dstId].Count > 0)
                                         return false;
                         }
+                    }
+                    else
+                    {
+                        if (!groupVoice.Config.Ignored.Contains((int)peerId))
+                            return false;
                     }
 
                     // is this a new stream?
