@@ -29,7 +29,7 @@
         affiliated: false
         #
         routable: false
-        #
+        # Flag indicating which hosts to ignore traffic from. If blank use [].
         ignored:
             - 0
       #
@@ -62,8 +62,8 @@
         affiliated: false
         #
         routable: true
-        #
-        ignored:
+        # Flag indicating which hosts to ignore traffic from. If blank use [].
+        ignored: []
       #
       # Source Configuration
       #
@@ -94,8 +94,8 @@
         affiliated: false
         #
         routable: false
-        #
-        ignored:
+        # Flag indicating which hosts to ignore traffic from. If blank use [].
+        ignored: []
       #
       # Source Configuration
       #
@@ -126,8 +126,8 @@
         affiliated: false
         #
         routable: false
-        #
-        ignored:
+        # Flag indicating which hosts to ignore traffic from. If blank use [].
+        ignored: []
       #
       # Source Configuration
       #
@@ -155,8 +155,8 @@
         affiliated: false
         #
         routable: false
-        #
-        ignored:
+        # Flag indicating which hosts to ignore traffic from. If blank use [].
+        ignored: []
       #
       # Source Configuration
       #
@@ -200,8 +200,8 @@
         affiliated: false
         #
         routable: true
-        #
-        ignored:
+        # Flag indicating which hosts to ignore traffic from. If blank use [].
+        ignored: []
       #
       # Source Configuration
       #
