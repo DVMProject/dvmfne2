@@ -36,7 +36,7 @@ namespace fneparrot
     /// </summary>
     public abstract partial class FneSystemBase
     {
-        private List<byte[]> dmrCallData = new List<byte[]>();
+        private List<Tuple<byte[], ushort>> dmrCallData = new List<Tuple<byte[], ushort>>();
 
         /*
         ** Methods
@@ -123,20 +123,20 @@ namespace fneparrot
                 {
                     TimeSpan callDuration = pktTime - status[0].RxStart;
                     Log.Logger.Information($"({SystemName}) DMRD: Traffic *CALL END       * PEER {e.PeerId} SRC_ID {e.SrcId} TGID {e.DstId} DUR {callDuration} [STREAM ID {e.StreamId}]");
-                    dmrCallData.Add(e.Data);
+                    dmrCallData.Add(new Tuple<byte[], ushort>(e.Data, e.PacketSequence));
                     Task.Delay(2000).GetAwaiter().GetResult();
                     Log.Logger.Information($"({SystemName}) DMRD: Playing back transmission from SRC_ID {e.SrcId}");
 
                     FneMaster master = (FneMaster)fne;
-                    foreach (byte[] pkt in dmrCallData)
+                    foreach (Tuple<byte[], ushort> pkt in dmrCallData)
                     {
-                        master.SendPeersTagged(FneBase.CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_DMR), Constants.TAG_DMR_DATA, pkt);
+                        master.SendPeersTagged(FneBase.CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_DMR), Constants.TAG_DMR_DATA, pkt.Item1, pkt.Item2);
                         Task.Delay(60).GetAwaiter().GetResult();
                     }
                     dmrCallData.Clear();
                 }
-                else 
-                    dmrCallData.Add(e.Data);
+                else
+                    dmrCallData.Add(new Tuple<byte[], ushort>(e.Data, e.PacketSequence));
 
                 status[e.Slot].RxRFS = e.SrcId;
                 status[e.Slot].RxType = e.FrameType;

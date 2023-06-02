@@ -311,12 +311,12 @@ namespace fnerouter
                             if (fne.FneType == FneType.MASTER)
                             {
                                 FneMaster master = (FneMaster)fne;
-                                master.SendPeer(tgtSystem.PeerId, FneBase.CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_P25), frame);
+                                master.SendPeer(tgtSystem.PeerId, FneBase.CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_P25), frame, e.PacketSequence);
                             }
                             else if (fne.FneType == FneType.PEER)
                             {
                                 FnePeer peer = (FnePeer)fne;
-                                peer.SendMaster(FneBase.CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_P25), frame);
+                                peer.SendMaster(FneBase.CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_P25), frame, e.PacketSequence);
                             }
 
                             Log.Logger.Debug($"({SystemName}) P25 Packet routed by rule {groupVoice.Name} to SYSTEM {tgtSystem.SystemName}");

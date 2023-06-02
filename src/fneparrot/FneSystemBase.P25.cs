@@ -36,7 +36,7 @@ namespace fneparrot
     /// </summary>
     public abstract partial class FneSystemBase
     {
-        private List<byte[]> p25CallData = new List<byte[]>();
+        private List<Tuple<byte[], ushort>> p25CallData = new List<Tuple<byte[], ushort>>();
 
         /*
         ** Methods
@@ -102,20 +102,20 @@ namespace fneparrot
                 {
                     TimeSpan callDuration = pktTime - status[P25_FIXED_SLOT].RxStart;
                     Log.Logger.Information($"({SystemName}) P25D: Traffic *CALL END       * PEER {e.PeerId} SRC_ID {e.SrcId} TGID {e.DstId} DUR {callDuration} [STREAM ID {e.StreamId}]");
-                    p25CallData.Add(e.Data);
+                    p25CallData.Add(new Tuple<byte[], ushort>(e.Data, e.PacketSequence));
                     Task.Delay(2000).GetAwaiter().GetResult();
                     Log.Logger.Information($"({SystemName}) P25D: Playing back transmission from SRC_ID {e.SrcId}");
 
                     FneMaster master = (FneMaster)fne;
-                    foreach (byte[] pkt in p25CallData)
+                    foreach (Tuple<byte[], ushort> pkt in p25CallData)
                     {
-                        master.SendPeersTagged(FneBase.CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_P25), Constants.TAG_P25_DATA, pkt);
+                        master.SendPeersTagged(FneBase.CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_P25), Constants.TAG_P25_DATA, pkt.Item1, pkt.Item2);
                         Task.Delay(120).GetAwaiter().GetResult();
                     }
                     p25CallData.Clear();
                 }
                 else
-                    p25CallData.Add(e.Data);
+                    p25CallData.Add(new Tuple<byte[], ushort>(e.Data, e.PacketSequence));
 
                 status[P25_FIXED_SLOT].RxRFS = e.SrcId;
                 status[P25_FIXED_SLOT].RxType = e.FrameType;

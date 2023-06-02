@@ -81,6 +81,10 @@ namespace fnecore
         /// </summary>
         public byte n { get; }
         /// <summary>
+        /// RTP Packet Sequence
+        /// </summary>
+        public ushort PacketSequence { get; }
+        /// <summary>
         /// Stream ID
         /// </summary>
         public uint StreamId { get; }
@@ -111,9 +115,10 @@ namespace fnecore
         /// <param name="frameType">Frame Type</param>
         /// <param name="dataType">DMR Data Type</param>
         /// <param name="n"></param>
+        /// <param name="pktSeq">RTP Packet Sequence</param>
         /// <param name="streamId">Stream ID</param>
         /// <param name="data">Raw message data</param>
-        public DMRDataReceivedEvent(uint peerId, uint srcId, uint dstId, byte slot, CallType callType, FrameType frameType, DMRDataType dataType, byte n, uint streamId, byte[] data) : base()
+        public DMRDataReceivedEvent(uint peerId, uint srcId, uint dstId, byte slot, CallType callType, FrameType frameType, DMRDataType dataType, byte n, ushort pktSeq, uint streamId, byte[] data) : base()
         {
             this.PeerId = peerId;
             this.SrcId = srcId;
@@ -123,6 +128,7 @@ namespace fnecore
             this.FrameType = frameType;
             this.DataType = dataType;
             this.n = n;
+            this.PacketSequence = pktSeq;
             this.StreamId = streamId;
 
             byte[] Data = new byte[data.Length];
@@ -172,6 +178,10 @@ namespace fnecore
         /// </summary>
         public FrameType FrameType { get; }
         /// <summary>
+        /// RTP Packet Sequence
+        /// </summary>
+        public ushort PacketSequence { get; }
+        /// <summary>
         /// Stream ID
         /// </summary>
         public uint StreamId { get; }
@@ -200,9 +210,10 @@ namespace fnecore
         /// <param name="callType">Call Type (Group or Private)</param>
         /// <param name="duid">P25 DUID</param>
         /// <param name="frameType">Frame Type</param>
+        /// <param name="pktSeq">RTP Packet Sequence</param>
         /// <param name="streamId">Stream ID</param>
         /// <param name="data">Raw message data</param>
-        public P25DataReceivedEvent(uint peerId, uint srcId, uint dstId, CallType callType, P25DUID duid, FrameType frameType, uint streamId, byte[] data) : base()
+        public P25DataReceivedEvent(uint peerId, uint srcId, uint dstId, CallType callType, P25DUID duid, FrameType frameType, ushort pktSeq, uint streamId, byte[] data) : base()
         {
             this.PeerId = peerId;
             this.SrcId = srcId;
@@ -210,6 +221,7 @@ namespace fnecore
             this.CallType = callType;
             this.DUID = duid;
             this.FrameType = frameType;
+            this.PacketSequence = pktSeq;
             this.StreamId = streamId;
 
             Data = new byte[data.Length];
@@ -259,6 +271,10 @@ namespace fnecore
         /// </summary>
         public FrameType FrameType { get; }
         /// <summary>
+        /// RTP Packet Sequence
+        /// </summary>
+        public ushort PacketSequence { get; }
+        /// <summary>
         /// Stream ID
         /// </summary>
         public uint StreamId { get; }
@@ -287,9 +303,10 @@ namespace fnecore
         /// <param name="callType">Call Type (Group or Private)</param>
         /// <param name="messageType">NXDN Message Type</param>
         /// <param name="frameType">Frame Type</param>
+        /// <param name="pktSeq">RTP Packet Sequence</param>
         /// <param name="streamId">Stream ID</param>
         /// <param name="data">Raw message data</param>
-        public NXDNDataReceivedEvent(uint peerId, uint srcId, uint dstId, CallType callType, NXDNMessageType messageType, FrameType frameType, uint streamId, byte[] data) : base()
+        public NXDNDataReceivedEvent(uint peerId, uint srcId, uint dstId, CallType callType, NXDNMessageType messageType, FrameType frameType, ushort pktSeq, uint streamId, byte[] data) : base()
         {
             this.PeerId = peerId;
             this.SrcId = srcId;
@@ -297,6 +314,7 @@ namespace fnecore
             this.CallType = callType;
             this.MessageType = messageType;
             this.FrameType = frameType;
+            this.PacketSequence = pktSeq;
             this.StreamId = streamId;
 
             byte[] Data = new byte[data.Length];

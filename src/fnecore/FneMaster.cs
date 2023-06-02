@@ -659,11 +659,15 @@ namespace fnecore
         /// </summary>
         /// <param name="opcode">Opcode</param>
         /// <param name="message">Byte array containing message to send</param>
-        public void SendPeers(Tuple<byte, byte> opcode, byte[] message)
+        /// <param name="pktSeq">RTP Packet Sequence</param>
+        public void SendPeers(Tuple<byte, byte> opcode, byte[] message, uint pktSeq = uint.MaxValue)
         {
             foreach (PeerInformation peer in peers.Values)
             {
-                byte[] data = WriteFrame(message, peer.PeerID, opcode, peer.PacketSequence, peer.StreamID);
+                if (pktSeq > ushort.MaxValue)
+                    pktSeq = peer.PacketSequence;
+
+                byte[] data = WriteFrame(message, peer.PeerID, opcode, (ushort)pktSeq, peer.StreamID);
                 SendAsync(new UdpFrame()
                 {
                     Endpoint = peer.EndPoint,
@@ -678,9 +682,10 @@ namespace fnecore
         /// <param name="opcode">Opcode</param>
         /// <param name="tag">Tag from <see cref="Constants"/></param>
         /// <param name="message">Byte array containing message to send</param>
-        public void SendPeersTagged(Tuple<byte, byte> opcode, string tag, byte[] message)
+        /// <param name="pktSeq">RTP Packet Sequence</param>
+        public void SendPeersTagged(Tuple<byte, byte> opcode, string tag, byte[] message, uint pktSeq = uint.MaxValue)
         {
-            SendPeers(opcode, Response(tag, message));
+            SendPeers(opcode, Response(tag, message), pktSeq);
         }
 
         /// <summary>
@@ -849,7 +854,7 @@ namespace fnecore
                                                 }
 
                                                 // perform any userland actions with the data
-                                                FireDMRDataReceived(new DMRDataReceivedEvent(peerId, srcId, dstId, slot, callType, frameType, dataType, n, streamId, message));
+                                                FireDMRDataReceived(new DMRDataReceivedEvent(peerId, srcId, dstId, slot, callType, frameType, dataType, n, rtpHeader.Sequence, streamId, message));
                                             }
                                         }
                                         else
@@ -879,7 +884,7 @@ namespace fnecore
                                             if (ret)
                                             {
                                                 // pre-process P25 data...
-                                                FireP25DataPreprocess(new P25DataReceivedEvent(peerId, srcId, dstId, callType, duid, frameType, streamId, message));
+                                                FireP25DataPreprocess(new P25DataReceivedEvent(peerId, srcId, dstId, callType, duid, frameType, rtpHeader.Sequence, streamId, message));
 
                                                 // is this the peer being ignored?
                                                 if (PeerIgnored != null)
@@ -914,7 +919,7 @@ namespace fnecore
                                                 }
 
                                                 // perform any userland actions with the data
-                                                FireP25DataReceived(new P25DataReceivedEvent(peerId, srcId, dstId, callType, duid, frameType, streamId, message));
+                                                FireP25DataReceived(new P25DataReceivedEvent(peerId, srcId, dstId, callType, duid, frameType, rtpHeader.Sequence, streamId, message));
                                             }
                                         }
                                         else
@@ -978,7 +983,7 @@ namespace fnecore
                                                 }
 
                                                 // perform any userland actions with the data
-                                                FireNXDNDataReceived(new NXDNDataReceivedEvent(peerId, srcId, dstId, callType, messageType, frameType, streamId, message));
+                                                FireNXDNDataReceived(new NXDNDataReceivedEvent(peerId, srcId, dstId, callType, messageType, frameType, rtpHeader.Sequence, streamId, message));
                                             }
                                         }
                                         else

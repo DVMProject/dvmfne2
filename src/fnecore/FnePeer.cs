@@ -239,13 +239,24 @@ namespace fnecore
         /// </summary>
         /// <param name="opcode">Opcode</param>
         /// <param name="message">Byte array containing message to send</param>
-        public void SendMaster(Tuple<byte, byte> opcode, byte[] message)
+        /// <param name="pktSeq">RTP Packet Sequence</param>
+        public void SendMaster(Tuple<byte, byte> opcode, byte[] message, ushort pktSeq)
         {
             Send(new UdpFrame()
             {
                 Endpoint = masterEndpoint,
-                Message = WriteFrame(message, peerId, opcode, pktSeq(), streamId)
+                Message = WriteFrame(message, peerId, opcode, pktSeq, streamId)
             });
+        }
+
+        /// <summary>
+        /// Helper to send a raw message to the master.
+        /// </summary>
+        /// <param name="opcode">Opcode</param>
+        /// <param name="message">Byte array containing message to send</param>
+        public void SendMaster(Tuple<byte, byte> opcode, byte[] message)
+        {
+            SendMaster(opcode, message, pktSeq());
         }
 
         /// <summary>
@@ -368,7 +379,7 @@ namespace fnecore
                                             Log(LogLevel.DEBUG, $"{systemName} DMRD: SRC_PEER {peerId} SRC_ID {srcId} DST_ID {dstId} TS {slot} [STREAM ID {streamId}]");
 #endif
                                             // perform any userland actions with the data
-                                            FireDMRDataReceived(new DMRDataReceivedEvent(peerId, srcId, dstId, slot, callType, frameType, dataType, n, streamId, message));
+                                            FireDMRDataReceived(new DMRDataReceivedEvent(peerId, srcId, dstId, slot, callType, frameType, dataType, n, rtpHeader.Sequence, streamId, message));
                                         }
                                     }
                                     else if (fneHeader.SubFunction == Constants.NET_PROTOCOL_SUBFUNC_P25)   // Encapsulated P25 data frame
@@ -391,7 +402,7 @@ namespace fnecore
                                             Log(LogLevel.DEBUG, $"{systemName} P25D: SRC_PEER {peerId} SRC_ID {srcId} DST_ID {dstId} [STREAM ID {streamId}]");
 #endif
                                             // perform any userland actions with the data
-                                            FireP25DataReceived(new P25DataReceivedEvent(peerId, srcId, dstId, callType, duid, frameType, streamId, message));
+                                            FireP25DataReceived(new P25DataReceivedEvent(peerId, srcId, dstId, callType, duid, frameType, rtpHeader.Sequence, streamId, message));
                                         }
                                     }
                                     else if (fneHeader.SubFunction == Constants.NET_PROTOCOL_SUBFUNC_NXDN)  // Encapsulated NXDN data frame
@@ -416,7 +427,7 @@ namespace fnecore
                                             Log(LogLevel.DEBUG, $"{systemName} NXDD: SRC_PEER {peerId} SRC_ID {srcId} DST_ID {dstId} [STREAM ID {streamId}]");
 #endif
                                             // perform any userland actions with the data
-                                            FireNXDNDataReceived(new NXDNDataReceivedEvent(peerId, srcId, dstId, callType, messageType, frameType, streamId, message));
+                                            FireNXDNDataReceived(new NXDNDataReceivedEvent(peerId, srcId, dstId, callType, messageType, frameType, rtpHeader.Sequence, streamId, message));
                                         }
                                     }
                                     else

@@ -219,12 +219,12 @@ namespace fnerouter
                             if (fne.FneType == FneType.MASTER)
                             {
                                 FneMaster master = (FneMaster)fne;
-                                master.SendPeer(tgtSystem.PeerId, FneBase.CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_NXDN), frame);
+                                master.SendPeer(tgtSystem.PeerId, FneBase.CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_NXDN), frame, e.PacketSequence);
                             }
                             else if (fne.FneType == FneType.PEER)
                             {
                                 FnePeer peer = (FnePeer)fne;
-                                peer.SendMaster(FneBase.CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_NXDN), frame);
+                                peer.SendMaster(FneBase.CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_NXDN), frame, e.PacketSequence);
                             }
 
                             Log.Logger.Debug($"({SystemName}) NXDN Packet routed by rule {groupVoice.Name} to SYSTEM {tgtSystem.SystemName}");
