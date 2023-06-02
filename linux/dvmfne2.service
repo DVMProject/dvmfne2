@@ -1,0 +1,13 @@
+[Unit]
+Description=DVMProject FNE2 Service
+After=syslog.target network.target
+
+[Service]
+User=dvmfne2
+Type=forking
+ExecStart=/opt/dvmfne2/fnerouter -c /opt/dvmfne2/routerconfig.yml --log-on-console
+Restart=on-abnormal
+WorkingDirectory=/opt/dvmfne2
+
+[Install]
+WantedBy=multi-user.target
