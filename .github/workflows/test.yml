@@ -25,7 +25,6 @@ jobs:
       working-directory: ./src/fnerouter
       run: dotnet test
 
-  jobs:
   test-linux-parrot:
     runs-on: ubuntu-latest
     steps:
