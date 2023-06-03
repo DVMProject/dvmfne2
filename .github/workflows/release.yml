@@ -60,7 +60,7 @@ jobs:
     - name: 'Upload Parrot'
       uses: actions/upload-artifact@v3
       with:
-        name: FNEParrot-${{ needs.setup.outputs.VERSION }}-Linux-64.tar.gz
+        name: FNEParrot-${{ needs.setup.outputs.VERSION }}-Linux-x64.tar.gz
         path: ./src/fneparrot/
         retention-days: 5
 #    - name: 'Upload Monitor'
