@@ -1,6 +1,9 @@
 # Authors: Charles Bricker<MajMongoose>, K4YT3X <i@k4yt3x.com>
+#
+# Description:
 # Compiles dvmfne2 for Linux, Windows, and upload the compiled files into a release
 # Utilizes portions of the pipeline written by K4YT3X in their fork. https://github.com/k4yt3x/dvmfne2/blob/master/.github/workflows/release.yml
+# 
 # TODO TODO TODO - Clean up the process. This is almost definitely not the most efficent way to do this.
 
 name: Release FNE2

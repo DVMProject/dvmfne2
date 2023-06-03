@@ -1,3 +1,11 @@
+# Authors: Charles Bricker <MajMongoose>
+# 
+# Description:
+# Test compiles dvmfne2 Router and Parrot for Linux and Windows
+# 
+# TODO TODO TODO - Clean up the process. This is almost definitely not the most efficent way to do this.
+
+
 name: Test FNE2
 
 on:
