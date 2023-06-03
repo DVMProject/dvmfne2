@@ -1,6 +1,7 @@
 # Authors: Charles Bricker<MajMongoose>, K4YT3X <i@k4yt3x.com>
 # Compiles dvmfne2 for Linux, Windows, and upload the compiled files into a release
 # Utilizes portions of the pipeline written by K4YT3X in their fork. https://github.com/k4yt3x/dvmfne2/blob/master/.github/workflows/release.yml
+# TODO TODO TODO - Clean up the process.
 
 name: Release FNE2
 on:
@@ -214,6 +215,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: FNERouter-${{ needs.setup.outputs.VERSION }}-Linux-x64.tar.gz
           asset_name: FNERouter-${{ needs.setup.outputs.VERSION }}-Linux-x64.tar.gz
           asset_content_type: application/gzip
       - name: Upload release asset Linux-arm64.tar.gz
@@ -222,6 +224,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: FNERouter-${{ needs.setup.outputs.VERSION }}-Linux-arm64.tar.gz
           asset_name: FNERouter-${{ needs.setup.outputs.VERSION }}-Linux-arm64.tar.gz
           asset_content_type: application/gzip
       - name: Upload release asset Winx64.zip
@@ -230,6 +233,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: FNERouter-${{ needs.setup.outputs.VERSION }}-Win64.zip
           asset_name: FNERouter-${{ needs.setup.outputs.VERSION }}-Win64.zip
           asset_content_type: application/zip
       - name: Upload release asset Linux-x64.tar.gz
@@ -238,6 +242,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: FNEParrot-${{ needs.setup.outputs.VERSION }}-Linux-x64.tar.gz
           asset_name: FNEParrot-${{ needs.setup.outputs.VERSION }}-Linux-x64.tar.gz
           asset_content_type: application/gzip
       - name: Upload release asset Linux-arm64.tar.gz
@@ -246,6 +251,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: FNEParrot-${{ needs.setup.outputs.VERSION }}-Linux-arm64.tar.gz
           asset_name: FNEParrot-${{ needs.setup.outputs.VERSION }}-Linux-arm64.tar.gz
           asset_content_type: application/gzip
       - name: Upload release asset Winx64.zip
@@ -254,5 +260,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: FNEParrot-${{ needs.setup.outputs.VERSION }}-Win64.zip
           asset_name: FNEParrot-${{ needs.setup.outputs.VERSION }}-Win64.zip
           asset_content_type: application/zip
