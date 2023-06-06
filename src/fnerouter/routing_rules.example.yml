@@ -30,8 +30,7 @@
         #
         routable: false
         # Flag indicating which hosts to ignore traffic from. If blank use [].
-        ignored:
-            - 0
+        ignored: []
       #
       # Source Configuration
       #
