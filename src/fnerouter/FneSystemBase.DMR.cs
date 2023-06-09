@@ -67,6 +67,7 @@ namespace fnerouter
                     status[slot].RxTGId = dstId;
                     status[slot].RxStreamId = streamId;
                     Log.Logger.Warning($"({SystemName}) DMRD: Traffic *REJECT ACL      * PEER {peerId} SRC_ID {srcId} DST_ID {dstId} [STREAM ID {streamId}] (Blacklisted RID)");
+
                     // send report to monitor server
                     FneReporter.sendReport(new Dictionary<string,string> { {"SystemName",SystemName},{"PEER",peerId.ToString()},{"SRC_ID",srcId.ToString()},{"DST_ID",dstId.ToString()},{"STREAM ID",streamId.ToString()},{"Value","BLACKLISTED_RID"}});
                 }
@@ -80,7 +81,7 @@ namespace fnerouter
 
             if (callType == CallType.GROUP)
             {
-                if (rules.SendTgid && (activeTGIDs.Find((x) => x.Source.Tgid == dstId) != null))
+                if (rules.SendTgid && (activeTGIDs.Find((x) => x.Source.Tgid == dstId) == null))
                 {
                     if (streamId == status[slot].RxStreamId)
                     {
@@ -92,6 +93,7 @@ namespace fnerouter
                         status[slot].RxTGId = dstId;
                         status[slot].RxStreamId = streamId;
                         Log.Logger.Warning($"({SystemName}) DMRD: Traffic *REJECT ACL      * PEER {peerId} SRC_ID {srcId} DST_ID {dstId} [STREAM ID {streamId}] (Illegal TGID)");
+    
                         // send report to monitor server
                         FneReporter.sendReport(new Dictionary<string,string> { {"SystemName",SystemName},{"PEER",peerId.ToString()},{"SRC_ID",srcId.ToString()},{"DST_ID",dstId.ToString()},{"STREAM ID",streamId.ToString()},{"Value","ILLEGAL_TGID"}});
                     }

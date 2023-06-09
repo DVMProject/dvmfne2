@@ -845,10 +845,7 @@ namespace fnecore
                                                                 ret = false;
 
                                                             if (!ret)
-                                                            {
                                                                 SendPeer(kvp.Key, CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_DMR), message, rtpHeader.Sequence);
-                                                                Log(LogLevel.DEBUG, $"{systemName} DMRD: Packet TS {slot} SRC_PEER {peerId} DST_ID {dstId} DST_PEER {kvp.Key} [STREAM ID {streamId}] PKT SEQ {rtpHeader.Sequence}");
-                                                            }
                                                         }
                                                     }
                                                 }
@@ -910,10 +907,7 @@ namespace fnecore
                                                                 ret = false;
 
                                                             if (!ret)
-                                                            {
                                                                 SendPeer(kvp.Key, CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_P25), message, rtpHeader.Sequence);
-                                                                Log(LogLevel.DEBUG, $"{systemName} P25D: Packet SRC_PEER {peerId} DST_ID {dstId} DST_PEER {kvp.Key} [STREAM ID {streamId}] PKT SEQ {rtpHeader.Sequence}");
-                                                            }
                                                         }
                                                     }
                                                 }
@@ -974,10 +968,7 @@ namespace fnecore
                                                                 ret = false;
 
                                                             if (!ret)
-                                                            {
                                                                 SendPeer(kvp.Key, CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_NXDN), message, rtpHeader.Sequence);
-                                                                Log(LogLevel.DEBUG, $"{systemName} NXDD: Packet SRC_PEER {peerId} DST_ID {dstId} DST_PEER {kvp.Key} [STREAM ID {streamId}] PKT SEQ {rtpHeader.Sequence}");
-                                                            }
                                                         }
                                                     }
                                                 }

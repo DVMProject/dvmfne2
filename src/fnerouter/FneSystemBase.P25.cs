@@ -84,7 +84,7 @@ namespace fnerouter
 
             if (callType == CallType.GROUP)
             {
-                if (rules is { SendTgid: true } && (activeTGIDs.Find((x) => x.Source.Tgid == dstId) != null))
+                if (rules.SendTgid && (activeTGIDs.Find((x) => x.Source.Tgid == dstId) == null))
                 {
                     if (streamId == status[P25_FIXED_SLOT].RxStreamId)
                     {
@@ -96,8 +96,10 @@ namespace fnerouter
                         status[P25_FIXED_SLOT].RxTGId = dstId;
                         status[P25_FIXED_SLOT].RxStreamId = streamId;
                         Log.Logger.Warning($"({SystemName}) P25D: Traffic *REJECT ACL      * PEER {peerId} SRC_ID {srcId} DST_ID {dstId} [STREAM ID {streamId}] (Illegal TGID)");
+    
                         // send report to monitor server
                         FneReporter.sendReport(new Dictionary<string,string> { {"SystemName",SystemName},{"PEER",peerId.ToString()},{"SRC_ID",srcId.ToString()},{"DST_ID",dstId.ToString()},{"STREAM ID",streamId.ToString()},{"Value","ILLEGAL_TGID"}});
+
                     }
 
                     return false;
@@ -118,9 +120,9 @@ namespace fnerouter
                         status[P25_FIXED_SLOT].RxTGId = dstId;
                         status[P25_FIXED_SLOT].RxStreamId = streamId;
                         Log.Logger.Warning($"({SystemName}) P25D: Traffic *REJECT ACL      * PEER {peerId} SRC_ID {srcId} DST_ID {dstId} [STREAM ID {streamId}] (Illegal RID)");
+    
                         // send report to monitor server
                         FneReporter.sendReport(new Dictionary<string,string> { {"SystemName",SystemName},{"PEER",peerId.ToString()},{"SRC_ID",srcId.ToString()},{"DST_ID",dstId.ToString()},{"STREAM ID",streamId.ToString()},{"Value","ILLEGAL_RID"}});
-                        
                     }
 
                     return false;
