@@ -131,7 +131,7 @@ namespace fnecore
             this.PacketSequence = pktSeq;
             this.StreamId = streamId;
 
-            byte[] Data = new byte[data.Length];
+            this.Data = new byte[data.Length];
             Buffer.BlockCopy(data, 0, Data, 0, data.Length);
         }
     } // public class DMRDataReceivedEvent : EventArgs
@@ -224,7 +224,7 @@ namespace fnecore
             this.PacketSequence = pktSeq;
             this.StreamId = streamId;
 
-            Data = new byte[data.Length];
+            this.Data = new byte[data.Length];
             Buffer.BlockCopy(data, 0, Data, 0, data.Length);
         }
     } // public class P25DataReceivedEvent : EventArgs
@@ -317,7 +317,7 @@ namespace fnecore
             this.PacketSequence = pktSeq;
             this.StreamId = streamId;
 
-            byte[] Data = new byte[data.Length];
+            this.Data = new byte[data.Length];
             Buffer.BlockCopy(data, 0, Data, 0, data.Length);
         }
     } // public class NXDNDataReceivedEvent : EventArgs
