@@ -334,7 +334,8 @@ namespace fnerouter
                     TimeSpan callDuration = pktTime - status[e.Slot].RxStart;
                     Log.Logger.Information($"({SystemName}) DMRD: Traffic *CALL END        * PEER {e.PeerId} SRC_ID {e.SrcId} TGID {e.DstId} TS {e.Slot + 1} DUR {callDuration.TotalSeconds} [STREAM ID: {e.StreamId}]");
                     // send report to monitor server
-                    FneReporter.sendReport(new Dictionary<string,string> { {"SystemName",SystemName},{"PEER",e.PeerId.ToString()},{"SRC_ID",e.SrcId.ToString()},{"TGID",e.DstId.ToString()},{"TS",(e.Slot+1).ToString()},{"DUR",callDuration.TotalSeconds.ToString()},{"STREAM ID",e.StreamId.ToString()},{"Value","CALL_END"}});                }
+                    FneReporter.sendReport(new Dictionary<string,string> { {"SystemName",SystemName},{"PEER",e.PeerId.ToString()},{"SRC_ID",e.SrcId.ToString()},{"TGID",e.DstId.ToString()},{"TS",(e.Slot+1).ToString()},{"DUR",callDuration.TotalSeconds.ToString()},{"STREAM ID",e.StreamId.ToString()},{"Value","CALL_END"}});                
+                }
 
                 status[e.Slot].RxPeerId = e.PeerId;
                 status[e.Slot].RxRFS = e.SrcId;
