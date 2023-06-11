@@ -152,13 +152,11 @@ namespace fnecore
             data[2] = (byte)((Sequence >> 8) & 0xFFU);                          // Sequence MSB
             data[3] = (byte)((Sequence >> 0) & 0xFFU);                          // Sequence LSB
 
-            if (Timestamp == Constants.InvalidTS) {
-                TimeSpan timeSinceStart = DateTime.Now - start;
+            TimeSpan timeSinceStart = DateTime.Now - start;
 
-                uint ts = (uint)rand.Next(int.MinValue, int.MaxValue);
-                ulong microSeconds = (ulong)(timeSinceStart.Ticks * Constants.RtpGenericClockRate);
-                Timestamp = ts + (uint)(microSeconds / 1000000);
-            }
+            uint ts = (uint)rand.Next(int.MinValue, int.MaxValue);
+            ulong microSeconds = (ulong)(timeSinceStart.Ticks * Constants.RtpGenericClockRate);
+            Timestamp = ts + (uint)(microSeconds / 1000000);
 
             FneUtils.WriteBytes(Timestamp, ref data, 4);                        // Timestamp
             FneUtils.WriteBytes(SSRC, ref data, 8);                             // Synchronization Source ID
