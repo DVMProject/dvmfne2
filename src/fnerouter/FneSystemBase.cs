@@ -134,7 +134,10 @@ namespace fnerouter
         protected RouterService service;
         protected FneBase fne;
 
-        private SlotStatus[] status;
+        private Dictionary<uint, Dictionary<byte, SlotStatus>> dmrCalls;
+        private Dictionary<uint, SlotStatus> p25Calls;
+        private Dictionary<uint, SlotStatus> nxdnCalls;
+        private uint lastStreamId;
 
         protected RoutingRule rules;
         
@@ -224,12 +227,10 @@ namespace fnerouter
 
             this.UpdateRoutingRules();
 
-            // initialize slot statuses
-            this.status = new SlotStatus[4];
-            this.status[0] = new SlotStatus();  // DMR Slot 1
-            this.status[1] = new SlotStatus();  // DMR Slot 2
-            this.status[2] = new SlotStatus();  // P25
-            this.status[3] = new SlotStatus();  // NXDN
+            // initialize call statuses
+            this.dmrCalls = new Dictionary<uint, Dictionary<byte, SlotStatus>>();
+            this.p25Calls = new Dictionary<uint, SlotStatus>();
+            this.nxdnCalls = new Dictionary<uint, SlotStatus>();
 
             // hook various FNE network callbacks
             this.fne.DMRDataValidate = DMRDataValidate;
@@ -416,13 +417,9 @@ namespace fnerouter
                     }
 
                     // is this a new stream?
-                    if (streamId != status[slot].RxStreamId)
+                    if (streamId != lastStreamId)
                     {
-                        status[slot].RxRFS = srcId;
-                        status[slot].RxType = frameType;
-                        status[slot].RxTGId = dstId;
-                        status[slot].RxStreamId = streamId;
-
+                        lastStreamId = streamId;
                         Log.Logger.Warning($"({SystemName}) Traffic *REJECT ACL      * PEER {peerId} SRC_ID {srcId} DST_ID {dstId} [STREAM ID {streamId}] (Ignored Peer)");
                         // TODO TODO TODO: Implement reporting API
                     }

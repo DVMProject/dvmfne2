@@ -55,17 +55,23 @@ namespace fnerouter
         {
             DateTime pktTime = DateTime.Now;
 
+            SlotStatus status = new SlotStatus();
+            if (dmrCalls.ContainsKey(dstId))                
+                if (dmrCalls[dstId].ContainsKey(slot))
+                    status = dmrCalls[dstId][slot];
+
             if (service.Blacklist.Find((x) => x.Id == srcId) != null)
             {
-                if (streamId == status[slot].RxStreamId)
+                if (streamId == status.RxStreamId)
                 {
                     // mark status variables for use later
-                    status[slot].RxStart = pktTime;
-                    status[slot].RxPeerId = peerId;
-                    status[slot].RxRFS = srcId;
-                    status[slot].RxType = frameType;
-                    status[slot].RxTGId = dstId;
-                    status[slot].RxStreamId = streamId;
+                    status.RxStart = pktTime;
+                    status.RxPeerId = peerId;
+                    status.RxRFS = srcId;
+                    status.RxType = frameType;
+                    status.RxTGId = dstId;
+                    status.RxStreamId = streamId;
+
                     Log.Logger.Warning($"({SystemName}) DMRD: Traffic *REJECT ACL      * PEER {peerId} SRC_ID {srcId} DST_ID {dstId} [STREAM ID {streamId}] (Blacklisted RID)");
 
                     // send report to monitor server
@@ -83,15 +89,16 @@ namespace fnerouter
             {
                 if (rules.SendTgid && (activeTGIDs.Find((x) => x.Source.Tgid == dstId) == null))
                 {
-                    if (streamId == status[slot].RxStreamId)
+                    if (streamId == status.RxStreamId)
                     {
                         // mark status variables for use later
-                        status[slot].RxStart = pktTime;
-                        status[slot].RxPeerId = peerId;
-                        status[slot].RxRFS = srcId;
-                        status[slot].RxType = frameType;
-                        status[slot].RxTGId = dstId;
-                        status[slot].RxStreamId = streamId;
+                        status.RxStart = pktTime;
+                        status.RxPeerId = peerId;
+                        status.RxRFS = srcId;
+                        status.RxType = frameType;
+                        status.RxTGId = dstId;
+                        status.RxStreamId = streamId;
+
                         Log.Logger.Warning($"({SystemName}) DMRD: Traffic *REJECT ACL      * PEER {peerId} SRC_ID {srcId} DST_ID {dstId} [STREAM ID {streamId}] (Illegal TGID)");
     
                         // send report to monitor server
@@ -118,6 +125,11 @@ namespace fnerouter
             Buffer.BlockCopy(e.Data, 20, dmrpkt, 0, 33);
             byte bits = e.Data[15];
 
+            SlotStatus status = new SlotStatus();
+            if (dmrCalls.ContainsKey(e.DstId))
+                if (dmrCalls[e.DstId].ContainsKey(e.Slot))
+                    status = dmrCalls[e.DstId][e.Slot];
+
             if ((e.FrameType == FrameType.DATA_SYNC) && ((e.DataType == DMRDataType.DATA_HEADER) || (e.DataType == DMRDataType.RATE_12_DATA) ||
                 (e.DataType == DMRDataType.RATE_34_DATA) || (e.DataType == DMRDataType.RATE_1_DATA)))
             {
@@ -130,10 +142,10 @@ namespace fnerouter
             if (e.CallType == CallType.GROUP)
             {
                 // is this a new call stream?
-                if (e.StreamId != status[e.Slot].RxStreamId)
+                if (e.StreamId != status.RxStreamId)
                 {
-                    if ((status[e.Slot].RxType != FrameType.TERMINATOR) && (pktTime < status[e.Slot].RxTime.AddSeconds(Constants.STREAM_TO)) &&
-                        (status[e.Slot].RxRFS != e.SrcId))
+                    if ((status.RxType != FrameType.TERMINATOR) && (pktTime < status.RxTime.AddSeconds(Constants.STREAM_TO)) &&
+                        (status.RxRFS != e.SrcId))
                     {
                         Log.Logger.Warning($"({SystemName}) DMRD: Traffic *CALL COLLISION  * PEER {e.PeerId} SRC_ID {e.SrcId} TGID {e.DstId} TS {e.Slot + 1} [STREAM ID {e.StreamId}] (Collided with existing call)");
                         // send report to monitor server
@@ -142,37 +154,37 @@ namespace fnerouter
                     }
 
                     // this is a new call stream
-                    status[e.Slot].RxStart = pktTime;
+                    status.RxStart = pktTime;
                     Log.Logger.Information($"({SystemName}) DMRD: Traffic *CALL START      * PEER {e.PeerId} SRC_ID {e.SrcId} TGID {e.DstId} TS {e.Slot + 1} [STREAM ID {e.StreamId}]");
                     // send report to monitor server
                     FneReporter.sendReport(new Dictionary<string,string> { {"SystemName",SystemName},{"PEER",e.PeerId.ToString()},{"SRC_ID",e.SrcId.ToString()},{"DST_ID",e.DstId.ToString()},{"STREAM ID",e.StreamId.ToString()},{"Value","CALL_STARTED"}});
 
-                    status[e.Slot].RxCallType = e.CallType;
+                    status.RxCallType = e.CallType;
 
                     // if we can, use the LC from the voice header as to keep all options intact
                     if ((e.FrameType == FrameType.DATA_SYNC) && (e.DataType == DMRDataType.VOICE_LC_HEADER))
                     {
                         LC lc = FullLC.Decode(dmrpkt, DMRDataType.VOICE_LC_HEADER);
-                        status[e.Slot].DMR_RxLC = lc;
+                        status.DMR_RxLC = lc;
                     }
                     else // if we don't have a voice header; don't wait to decode it, just make a dummy header
-                        status[e.Slot].DMR_RxLC = new LC()
+                        status.DMR_RxLC = new LC()
                         {
                             SrcId = e.SrcId,
                             DstId = e.DstId
                         };
 
-                    status[e.Slot].DMR_RxPILC = new PrivacyLC();
-                    Log.Logger.Debug($"({SystemName}) TS {e.Slot + 1} [STREAM ID {e.StreamId}] RX_LC {FneUtils.HexDump(status[e.Slot].DMR_RxLC.GetBytes())}");
+                    status.DMR_RxPILC = new PrivacyLC();
+                    Log.Logger.Debug($"({SystemName}) TS {e.Slot + 1} [STREAM ID {e.StreamId}] RX_LC {FneUtils.HexDump(status.DMR_RxLC.GetBytes())}");
                 }
 
                 // if we can, use the PI LC from the PI voice header as to keep all options intact
                 if ((e.FrameType == FrameType.DATA_SYNC) && (e.DataType == DMRDataType.VOICE_PI_HEADER))
                 {
                     PrivacyLC lc = FullLC.DecodePI(dmrpkt);
-                    status[e.Slot].DMR_RxPILC = lc;
+                    status.DMR_RxPILC = lc;
                     Log.Logger.Information($"({SystemName}) DMRD: Traffic *CALL PI PARAMS  * PEER {e.PeerId} DST_ID {e.DstId} TS {e.Slot + 1} ALGID {lc.AlgId} KID {lc.KId} [STREAM ID {e.StreamId}]");
-                    Log.Logger.Debug($"({SystemName}) TS {e.Slot + 1} [STREAM ID {e.StreamId}] RX_PI_LC {FneUtils.HexDump(status[e.Slot].DMR_RxPILC.GetBytes())}");
+                    Log.Logger.Debug($"({SystemName}) TS {e.Slot + 1} [STREAM ID {e.StreamId}] RX_PI_LC {FneUtils.HexDump(status.DMR_RxPILC.GetBytes())}");
                 }
 
                 // find the group voice rule by e.DstId, e.Slot and whether or not the rule is active and routable
@@ -185,99 +197,118 @@ namespace fnerouter
                         FneSystemBase tgtSystem = service.Systems.Find((x) => x.SystemName.ToUpperInvariant() == target.Network.ToUpperInvariant());
                         if (tgtSystem != null)
                         {
-                            if (tgtSystem.SystemName.ToUpperInvariant() == SystemName.ToUpperInvariant()) {
+                            if (tgtSystem.SystemName.ToUpperInvariant() == SystemName.ToUpperInvariant()) 
+                            {
                                 Log.Logger.Error($"({SystemName}) DMRD: Call not routed, cowardly refusing to route a call to ourselves.");
                                 continue;
                             }
+
+                            SlotStatus tgtStatus = null;
+                            if (tgtSystem.dmrCalls.ContainsKey(target.Tgid)) 
+                                if (tgtSystem.dmrCalls[target.Tgid].ContainsKey(target.Slot))
+                                    tgtStatus = tgtSystem.nxdnCalls[target.Tgid];
+                            if (tgtStatus == null) 
+                                tgtStatus = new SlotStatus();
 
                             /*
                             ** Contention Handling
                             */
 
                             // from a different group than last RX from this system, but it has been less than Group Hangtime
-                            if ((target.Tgid != tgtSystem.status[target.Slot].RxTGId) && (pktTime - tgtSystem.status[target.Slot].RxTime < new TimeSpan(0, 0, rules.GroupHangTime)))
+                            if ((target.Tgid != tgtStatus.RxTGId) && (pktTime - tgtStatus.RxTime < new TimeSpan(0, 0, rules.GroupHangTime)))
                                 if (e.FrameType == FrameType.DATA_SYNC && e.DataType == DMRDataType.VOICE_LC_HEADER)
                                 {
-                                    Log.Logger.Information($"({SystemName}) DMRD: Call not routed to TGID {target.Tgid}, target active or in group hangtime: PEER {tgtSystem.PeerId} TS {target.Slot + 1} TGID {tgtSystem.status[target.Slot].RxTGId}");
+                                    Log.Logger.Information($"({SystemName}) DMRD: Call not routed to TGID {target.Tgid}, target active or in group hangtime: PEER {tgtSystem.PeerId} TS {target.Slot + 1} TGID {tgtStatus.RxTGId}");
                                     // send report to monitor server
                                     FneReporter.sendReport(new Dictionary<string,string> { {"SystemName",SystemName},{"PEER",e.PeerId.ToString()},{"SRC_ID",e.SrcId.ToString()},{"DST_ID",e.DstId.ToString()},{"STREAM ID",e.StreamId.ToString()},{"Value","CALL_NOT_ROUTED_HANGTIME"}});
                                     continue;
                                 }
 
                             // from a different group than last TX to this system, but it has been less than Group Hangtime
-                            if ((target.Tgid != tgtSystem.status[target.Slot].TxTGId) && (pktTime - tgtSystem.status[target.Slot].TxTime < new TimeSpan(0, 0, rules.GroupHangTime)))
+                            if ((target.Tgid != tgtStatus.TxTGId) && (pktTime - tgtStatus.TxTime < new TimeSpan(0, 0, rules.GroupHangTime)))
                                 if (e.FrameType == FrameType.DATA_SYNC && e.DataType == DMRDataType.VOICE_LC_HEADER)
                                 {
-                                    Log.Logger.Information($"({SystemName}) DMRD: Call not routed to TGID {target.Tgid}, target in group hangtime: PEER {tgtSystem.PeerId} TS {target.Slot + 1} TGID {tgtSystem.status[target.Slot].TxTGId}");
+                                    Log.Logger.Information($"({SystemName}) DMRD: Call not routed to TGID {target.Tgid}, target in group hangtime: PEER {tgtSystem.PeerId} TS {target.Slot + 1} TGID {tgtStatus.TxTGId}");
                                     // send report to monitor server
-                                    FneReporter.sendReport(new Dictionary<string,string> { {"SystemName",SystemName},{"TARGET_TGID",target.Tgid.ToString()},{"PEER",tgtSystem.PeerId.ToString()},{"TS",(target.Slot+1).ToString()},{"TGID",tgtSystem.status[target.Slot].TxTGId.ToString()},{"Value","CALL_NOT_ROUTED_HANGTIME"}});
+                                    FneReporter.sendReport(new Dictionary<string,string> { {"SystemName",SystemName},{"TARGET_TGID",target.Tgid.ToString()},{"PEER",tgtSystem.PeerId.ToString()},{"TS",(target.Slot+1).ToString()},{"TGID",tgtStatus.TxTGId.ToString()},{"Value","CALL_NOT_ROUTED_HANGTIME"}});
                                     continue;
                                 }
 
                             // from the same group as the last RX from this system, but from a different subscriber, and it has been less than stream timeout
-                            if ((target.Tgid != tgtSystem.status[target.Slot].RxTGId) && (e.SrcId != tgtSystem.status[target.Slot].RxRFS) && (pktTime - tgtSystem.status[target.Slot].RxTime < new TimeSpan(0, 0, 0, 0, (int)(Constants.STREAM_TO * 1000))))
+                            if ((target.Tgid != tgtStatus.RxTGId) && (e.SrcId != tgtStatus.RxRFS) && (pktTime - tgtStatus.RxTime < new TimeSpan(0, 0, 0, 0, (int)(Constants.STREAM_TO * 1000))))
                                 if (e.FrameType == FrameType.DATA_SYNC && e.DataType == DMRDataType.VOICE_LC_HEADER)
                                 {
-                                    Log.Logger.Information($"({SystemName}) DMRD: Call not routed to TGID {target.Tgid}, matching call already active on target: PEER {tgtSystem.PeerId} TS {target.Slot + 1} TGID {tgtSystem.status[target.Slot].TxTGId} SRC_ID {tgtSystem.status[target.Slot].TxRFS}");
+                                    Log.Logger.Information($"({SystemName}) DMRD: Call not routed to TGID {target.Tgid}, matching call already active on target: PEER {tgtSystem.PeerId} TS {target.Slot + 1} TGID {tgtStatus.TxTGId} SRC_ID {tgtStatus.TxRFS}");
                                     // send report to monitor server
-                                    FneReporter.sendReport(new Dictionary<string,string> { {"SystemName",SystemName},{"TARGET_TGID",target.Tgid.ToString()},{"PEER",tgtSystem.PeerId.ToString()},{"TS",(target.Slot+1).ToString()},{"TGID",tgtSystem.status[target.Slot].TxTGId.ToString()},{"SRC_ID",tgtSystem.status[target.Slot].TxRFS.ToString()},{"Value","CALL_NOT_ROUTED_CALLONTARGET"}});
+                                    FneReporter.sendReport(new Dictionary<string,string> { {"SystemName",SystemName},{"TARGET_TGID",target.Tgid.ToString()},{"PEER",tgtSystem.PeerId.ToString()},{"TS",(target.Slot+1).ToString()},{"TGID",tgtStatus.TxTGId.ToString()},{"SRC_ID",tgtStatus.TxRFS.ToString()},{"Value","CALL_NOT_ROUTED_CALLONTARGET"}});
                                     continue;
                                 }
 
                             // from the same group as the last TX to this system, but from a different subscriber, and it has been less than stream timeout
-                            if ((target.Tgid != tgtSystem.status[target.Slot].TxTGId) && (e.SrcId != tgtSystem.status[target.Slot].TxRFS) && (pktTime - tgtSystem.status[target.Slot].RxTime < new TimeSpan(0, 0, 0, 0, (int)(Constants.STREAM_TO * 1000))))
+                            if ((target.Tgid != tgtStatus.TxTGId) && (e.SrcId != tgtStatus.TxRFS) && (pktTime - tgtStatus.RxTime < new TimeSpan(0, 0, 0, 0, (int)(Constants.STREAM_TO * 1000))))
                                 if (e.FrameType == FrameType.DATA_SYNC && e.DataType == DMRDataType.VOICE_LC_HEADER)
                                 {
-                                    Log.Logger.Information($"({SystemName}) DMRD: Call not routed to TGID {target.Tgid}, call route in progress on target: PEER {tgtSystem.PeerId} TS {target.Slot + 1} TGID {tgtSystem.status[target.Slot].TxTGId} SRC_ID {tgtSystem.status[target.Slot].TxRFS}");
+                                    Log.Logger.Information($"({SystemName}) DMRD: Call not routed to TGID {target.Tgid}, call route in progress on target: PEER {tgtSystem.PeerId} TS {target.Slot + 1} TGID {tgtStatus.TxTGId} SRC_ID {tgtStatus.TxRFS}");
                                     // send report to monitor server
-                                    FneReporter.sendReport(new Dictionary<string,string> { {"SystemName",SystemName},{"TARGET_TGID",target.Tgid.ToString()},{"PEER",tgtSystem.PeerId.ToString()},{"TS",(target.Slot+1).ToString()},{"TGID",tgtSystem.status[target.Slot].TxTGId.ToString()},{"SRC_ID",tgtSystem.status[target.Slot].TxRFS.ToString()},{"Value","CALL_NOT_ROUTED_CALLINPROGRESS"}});
+                                    FneReporter.sendReport(new Dictionary<string,string> { {"SystemName",SystemName},{"TARGET_TGID",target.Tgid.ToString()},{"PEER",tgtSystem.PeerId.ToString()},{"TS",(target.Slot+1).ToString()},{"TGID",tgtStatus.TxTGId.ToString()},{"SRC_ID",tgtStatus.TxRFS.ToString()},{"Value","CALL_NOT_ROUTED_CALLINPROGRESS"}});
                                     continue;
                                 }
 
                             // set values for the contention handler to test next time
-                            tgtSystem.status[target.Slot].TxTime = pktTime;
+                            tgtStatus.TxTime = pktTime;
 
-                            if ((e.StreamId != status[e.Slot].RxStreamId) || (tgtSystem.status[target.Slot].TxRFS != e.SrcId) || (tgtSystem.status[target.Slot].TxTGId != target.Tgid))
+                            if ((e.StreamId != status.RxStreamId) || (tgtStatus.TxRFS != e.SrcId) || (tgtStatus.TxTGId != target.Tgid))
                             {
                                 // record the destination TGID and stream ID
-                                tgtSystem.status[target.Slot].TxTGId = target.Tgid;
-                                tgtSystem.status[target.Slot].TxPITGId = 0;
-                                tgtSystem.status[target.Slot].TxStreamId = e.StreamId;
-                                tgtSystem.status[target.Slot].TxRFS = e.SrcId;
+                                tgtStatus.TxTGId = target.Tgid;
+                                tgtStatus.TxPITGId = 0;
+                                tgtStatus.TxStreamId = e.StreamId;
+                                tgtStatus.TxRFS = e.SrcId;
 
                                 // generate full LCs (full and EMB) for Tx stream
-                                LC dstLC = status[e.Slot].DMR_RxLC;
+                                LC dstLC = status.DMR_RxLC;
                                 dstLC.DstId = target.Tgid;
                                 dstLC.SrcId = e.SrcId;
 
-                                tgtSystem.status[target.Slot].DMR_TxHLC = dstLC;
-                                tgtSystem.status[target.Slot].DMR_TxTLC = dstLC;
+                                tgtStatus.DMR_TxHLC = dstLC;
+                                tgtStatus.DMR_TxTLC = dstLC;
 
-                                PrivacyLC dstPILC = status[e.Slot].DMR_RxPILC;
+                                PrivacyLC dstPILC = status.DMR_RxPILC;
                                 dstPILC.DstId = target.Tgid;
 
-                                tgtSystem.status[target.Slot].DMR_TxPILC = dstPILC;
+                                tgtStatus.DMR_TxPILC = dstPILC;
 
-                                Log.Logger.Debug($"({SystemName}) TS {e.Slot + 1} [STREAM ID {e.StreamId}] TX_H_LC {FneUtils.HexDump(tgtSystem.status[target.Slot].DMR_TxHLC.GetBytes())}");
-                                Log.Logger.Debug($"({SystemName}) TS {e.Slot + 1} [STREAM ID {e.StreamId}] TX_PI_LC {FneUtils.HexDump(tgtSystem.status[target.Slot].DMR_TxPILC.GetBytes())}");
+                                if (tgtSystem.dmrCalls.ContainsKey(target.Tgid)) 
+                                {
+                                    if (tgtSystem.dmrCalls.ContainsKey(target.Slot))
+                                        tgtSystem.dmrCalls[target.Tgid][target.Slot] = status;
+                                    else
+                                        tgtSystem.dmrCalls[target.Tgid].Add(target.Slot, status);
+                                }
+                                else
+                                    tgtSystem.dmrCalls.Add(target.Tgid, new Dictionary<byte, SlotStatus>{ { target.Slot, status  } });
+
+
+                                Log.Logger.Debug($"({SystemName}) TS {e.Slot + 1} [STREAM ID {e.StreamId}] TX_H_LC {FneUtils.HexDump(tgtStatus.DMR_TxHLC.GetBytes())}");
+                                Log.Logger.Debug($"({SystemName}) TS {e.Slot + 1} [STREAM ID {e.StreamId}] TX_PI_LC {FneUtils.HexDump(tgtStatus.DMR_TxPILC.GetBytes())}");
                                 Log.Logger.Debug($"({SystemName}) DMR Packet DST TGID {target.Tgid} does not match SRC TGID {e.DstId} - Generating FULL and EMB LCs");
                                 Log.Logger.Information($"({SystemName}) DMRD: Call routed to SYSTEM {target.Network} TS {target.Slot} TGID {target.Tgid}");
                                 // send report to monitor server
                                 FneReporter.sendReport(new Dictionary<string,string> { {"SystemName",SystemName},{"TARGET_SYSTEM",target.Network.ToString()},{"TS",target.Slot.ToString()},{"TGID",target.Tgid.ToString()},{"Value","CALL_ROUTED"}});
                             }
 
-                            uint piDstId = status[e.Slot].DMR_RxPILC.DstId;
-                            if ((piDstId != 0) && (tgtSystem.status[target.Slot].TxPITGId != target.Tgid))
+                            uint piDstId = status.DMR_RxPILC.DstId;
+                            if ((piDstId != 0) && (tgtStatus.TxPITGId != target.Tgid))
                             {
                                 // record the destination TGID
-                                tgtSystem.status[target.Slot].TxPITGId = target.Tgid;
+                                tgtStatus.TxPITGId = target.Tgid;
 
                                 // generate full LCs (full and EMB) for Tx stream
-                                PrivacyLC dstPiLC = status[e.Slot].DMR_RxPILC;
+                                PrivacyLC dstPiLC = status.DMR_RxPILC;
                                 dstPiLC.DstId = target.Tgid;
 
-                                tgtSystem.status[target.Slot].DMR_TxPILC = dstPiLC;
-                                Log.Logger.Debug($"({SystemName}) TS {e.Slot + 1} [STREAM ID {e.StreamId}] TX_PI_LC {FneUtils.HexDump(tgtSystem.status[target.Slot].DMR_TxPILC.GetBytes())}");
+                                tgtStatus.DMR_TxPILC = dstPiLC;
+                                Log.Logger.Debug($"({SystemName}) TS {e.Slot + 1} [STREAM ID {e.StreamId}] TX_PI_LC {FneUtils.HexDump(tgtStatus.DMR_TxPILC.GetBytes())}");
                                 Log.Logger.Information($"({SystemName}) DMRD: Call PI parameters routed to SYSTEM {target.Network} TS {target.Slot} TGID {target.Tgid}");
                             }
 
@@ -303,13 +334,13 @@ namespace fnerouter
                                 switch (e.DataType)
                                 {
                                     case DMRDataType.VOICE_LC_HEADER:
-                                        FullLC.Encode(tgtSystem.status[target.Slot].DMR_TxHLC, ref fullLC, DMRDataType.VOICE_LC_HEADER);
+                                        FullLC.Encode(tgtStatus.DMR_TxHLC, ref fullLC, DMRDataType.VOICE_LC_HEADER);
                                         break;
                                     case DMRDataType.VOICE_PI_HEADER:
-                                        FullLC.EncodePI(tgtSystem.status[target.Slot].DMR_TxPILC, ref fullLC);
+                                        FullLC.EncodePI(tgtStatus.DMR_TxPILC, ref fullLC);
                                         break;
                                     case DMRDataType.TERMINATOR_WITH_LC:
-                                        FullLC.Encode(tgtSystem.status[target.Slot].DMR_TxTLC, ref fullLC, DMRDataType.TERMINATOR_WITH_LC);
+                                        FullLC.Encode(tgtStatus.DMR_TxTLC, ref fullLC, DMRDataType.TERMINATOR_WITH_LC);
                                         break;
                                 }
 
@@ -334,28 +365,38 @@ namespace fnerouter
                 }
 
                 // final actions - is this a voice terminator?
-                if ((e.FrameType == FrameType.DATA_SYNC) && (e.DataType == DMRDataType.TERMINATOR_WITH_LC) && (status[e.Slot].RxType != FrameType.TERMINATOR))
+                if ((e.FrameType == FrameType.DATA_SYNC) && (e.DataType == DMRDataType.TERMINATOR_WITH_LC) && (status.RxType != FrameType.TERMINATOR))
                 {
-                    TimeSpan callDuration = pktTime - status[e.Slot].RxStart;
+                    TimeSpan callDuration = pktTime - status.RxStart;
                     Log.Logger.Information($"({SystemName}) DMRD: Traffic *CALL END        * PEER {e.PeerId} SRC_ID {e.SrcId} TGID {e.DstId} TS {e.Slot + 1} DUR {callDuration.TotalSeconds} [STREAM ID: {e.StreamId}]");
                     // send report to monitor server
                     FneReporter.sendReport(new Dictionary<string,string> { {"SystemName",SystemName},{"PEER",e.PeerId.ToString()},{"SRC_ID",e.SrcId.ToString()},{"TGID",e.DstId.ToString()},{"TS",(e.Slot+1).ToString()},{"DUR",callDuration.TotalSeconds.ToString()},{"STREAM ID",e.StreamId.ToString()},{"Value","CALL_END"}});                
+
+                    if (dmrCalls.ContainsKey(e.DstId)) 
+                        if (dmrCalls.ContainsKey(e.Slot))
+                            dmrCalls.Remove(e.DstId);
                 }
 
-                status[e.Slot].RxPeerId = e.PeerId;
-                status[e.Slot].RxRFS = e.SrcId;
-                status[e.Slot].RxType = e.FrameType;
-                status[e.Slot].RxTGId = e.DstId;
-                status[e.Slot].RxTime = pktTime;
-                status[e.Slot].RxStreamId = e.StreamId;
+                status.RxPeerId = e.PeerId;
+                status.RxRFS = e.SrcId;
+                status.RxType = e.FrameType;
+                status.RxTGId = e.DstId;
+                status.RxTime = pktTime;
+                status.RxStreamId = e.StreamId;
+
+                if (dmrCalls.ContainsKey(e.DstId)) 
+                {
+                    if (dmrCalls.ContainsKey(e.Slot))
+                        dmrCalls[e.DstId][e.Slot] = status;
+                }
             }
             else if (e.CallType == CallType.PRIVATE)
             {
                 // is this a new call stream?
-                if (e.StreamId != status[e.Slot].RxStreamId)
+                if (e.StreamId != status.RxStreamId)
                 {
-                    if ((status[e.Slot].RxType != FrameType.TERMINATOR) && (pktTime < status[e.Slot].RxTime.AddSeconds(Constants.STREAM_TO)) &&
-                        (status[e.Slot].RxRFS != e.SrcId))
+                    if ((status.RxType != FrameType.TERMINATOR) && (pktTime < status.RxTime.AddSeconds(Constants.STREAM_TO)) &&
+                        (status.RxRFS != e.SrcId))
                     {
                         Log.Logger.Warning($"({SystemName}) DMRD: Traffic *CALL COLLISION  * PEER {e.PeerId} SRC_ID {e.SrcId} DST_ID {e.DstId} TS {e.Slot + 1} [STREAM ID {e.StreamId}] (Collided with existing call)");
                         // send report to monitor server
@@ -364,54 +405,64 @@ namespace fnerouter
                     }
 
                     // this is a new call stream
-                    status[e.Slot].RxStart = pktTime;
+                    status.RxStart = pktTime;
                     Log.Logger.Information($"({SystemName}) DMRD: Traffic *PRV CALL START  * PEER {e.PeerId} SRC_ID {e.SrcId} DST_ID {e.DstId} TS {e.Slot + 1} [STREAM ID {e.StreamId}]");
                     // send report to monitor server
                     FneReporter.sendReport(new Dictionary<string,string> { {"SystemName",SystemName},{"PEER",e.PeerId.ToString()},{"SRC_ID",e.SrcId.ToString()},{"DST_ID",e.DstId.ToString()},{"TS",(e.Slot+1).ToString()},{"STREAM ID",e.StreamId.ToString()},{"Value","PRIVATE_CALL_START"}});
 
-                    status[e.Slot].RxCallType = e.CallType;
+                    status.RxCallType = e.CallType;
 
                     // if we can, use the LC from the voice header as to keep all options intact
                     if ((e.FrameType == FrameType.DATA_SYNC) && (e.DataType == DMRDataType.VOICE_LC_HEADER))
                     {
                         LC lc = FullLC.Decode(dmrpkt, DMRDataType.VOICE_LC_HEADER);
-                        status[e.Slot].DMR_RxLC = lc;
+                        status.DMR_RxLC = lc;
                     }
                     else // if we don't have a voice header; don't wait to decode it, just make a dummy header
-                        status[e.Slot].DMR_RxLC = new LC()
+                        status.DMR_RxLC = new LC()
                         {
                             SrcId = e.SrcId,
                             DstId = e.DstId
                         };
 
-                    status[e.Slot].DMR_RxPILC = new PrivacyLC();
-                    Log.Logger.Debug($"({SystemName}) TS {e.Slot + 1} [STREAM ID {e.StreamId}] RX_LC {FneUtils.HexDump(status[e.Slot].DMR_RxLC.GetBytes())}");
+                    status.DMR_RxPILC = new PrivacyLC();
+                    Log.Logger.Debug($"({SystemName}) TS {e.Slot + 1} [STREAM ID {e.StreamId}] RX_LC {FneUtils.HexDump(status.DMR_RxLC.GetBytes())}");
                 }
 
                 // if we can, use the PI LC from the PI voice header as to keep all options intact
                 if ((e.FrameType == FrameType.DATA_SYNC) && (e.DataType == DMRDataType.VOICE_PI_HEADER))
                 {
                     PrivacyLC lc = FullLC.DecodePI(dmrpkt);
-                    status[e.Slot].DMR_RxPILC = lc;
+                    status.DMR_RxPILC = lc;
                     Log.Logger.Information($"({SystemName}) DMRD: Traffic *CALL PI PARAMS  * PEER {e.PeerId} DST_ID {e.DstId} TS {e.Slot + 1} ALGID {lc.AlgId} KID {lc.KId} [STREAM ID {e.StreamId}]");
-                    Log.Logger.Debug($"({SystemName}) TS {e.Slot + 1} [STREAM ID {e.StreamId}] RX_PI_LC {FneUtils.HexDump(status[e.Slot].DMR_RxPILC.GetBytes())}");
+                    Log.Logger.Debug($"({SystemName}) TS {e.Slot + 1} [STREAM ID {e.StreamId}] RX_PI_LC {FneUtils.HexDump(status.DMR_RxPILC.GetBytes())}");
                 }
 
                 // final actions - is this a voice terminator?
-                if ((e.FrameType == FrameType.DATA_SYNC) && (e.DataType == DMRDataType.TERMINATOR_WITH_LC) && (status[e.Slot].RxType != FrameType.TERMINATOR))
+                if ((e.FrameType == FrameType.DATA_SYNC) && (e.DataType == DMRDataType.TERMINATOR_WITH_LC) && (status.RxType != FrameType.TERMINATOR))
                 {
-                    TimeSpan callDuration = pktTime - status[e.Slot].RxStart;
+                    TimeSpan callDuration = pktTime - status.RxStart;
                     Log.Logger.Information($"({SystemName}) DMRD: Traffic *PRV CALL END    * PEER {e.PeerId} SRC_ID {e.SrcId} DST_ID {e.DstId} TS {e.Slot + 1} DUR {callDuration.TotalSeconds} [STREAM ID: {e.StreamId}]");
                     // send report to monitor server
                     FneReporter.sendReport(new Dictionary<string,string> { {"SystemName",SystemName},{"PEER",e.PeerId.ToString()},{"SRC_ID",e.SrcId.ToString()},{"DST_ID",e.DstId.ToString()},{"TS",(e.Slot+1).ToString()},{"DUR",callDuration.TotalSeconds.ToString()},{"STREAM ID",e.StreamId.ToString()},{"Value","PRIVATE_CALL_END"}});
+
+                    if (dmrCalls.ContainsKey(e.DstId)) 
+                        if (dmrCalls.ContainsKey(e.Slot))
+                            dmrCalls.Remove(e.DstId);
                 }
 
-                status[e.Slot].RxPeerId = e.PeerId;
-                status[e.Slot].RxRFS = e.SrcId;
-                status[e.Slot].RxType = e.FrameType;
-                status[e.Slot].RxTGId = e.DstId;
-                status[e.Slot].RxTime = pktTime;
-                status[e.Slot].RxStreamId = e.StreamId;
+                status.RxPeerId = e.PeerId;
+                status.RxRFS = e.SrcId;
+                status.RxType = e.FrameType;
+                status.RxTGId = e.DstId;
+                status.RxTime = pktTime;
+                status.RxStreamId = e.StreamId;
+
+                if (dmrCalls.ContainsKey(e.DstId)) 
+                {
+                    if (dmrCalls.ContainsKey(e.Slot))
+                        dmrCalls[e.DstId][e.Slot] = status;
+                }
             }
         }
     } // public abstract partial class FneSystemBase
