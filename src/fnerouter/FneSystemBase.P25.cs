@@ -245,6 +245,11 @@ namespace fnerouter
                         FneSystemBase tgtSystem = service.Systems.Find((x) => x.SystemName.ToUpperInvariant() == target.Network.ToUpperInvariant());
                         if (tgtSystem != null)
                         {
+                            if (tgtSystem.SystemName.ToUpperInvariant() == SystemName.ToUpperInvariant()) {
+                                Log.Logger.Error($"({SystemName}) P25D: Call not routed, cowardly refusing to route a call to ourselves.");
+                                continue;
+                            }
+
                             /*
                             ** Contention Handling
                             */
