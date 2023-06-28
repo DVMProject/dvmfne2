@@ -77,6 +77,8 @@ masters:
       passphrase: RPT1234
       #
       groupHangtime: 5
+      # Network Peer ID
+      peerId: 9000100
 
 #
 # Peer Instances

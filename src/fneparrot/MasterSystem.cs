@@ -66,7 +66,7 @@ namespace fneparrot
                     endpoint = new IPEndPoint(IPAddress.Parse(config.Address), config.Port);
             }
 
-            FneMaster master = new FneMaster(config.Name, 0, endpoint);
+            FneMaster master = new FneMaster(config.Name, config.PeerId, endpoint);
 
             // set configuration parameters
             master.RawPacketTrace = Configuration.RawPacketTrace;

@@ -550,7 +550,7 @@ namespace fnecore
         {
             if (peers.ContainsKey(peerId))
             {
-                byte[] data = WriteFrame(message, peerId, opcode, pktSeq, peers[peerId].StreamID);
+                byte[] data = WriteFrame(message, peerId, this.peerId, opcode, pktSeq, peers[peerId].StreamID);
                 SendPeer(peers[peerId].EndPoint, data);
             }
         }
@@ -587,7 +587,7 @@ namespace fnecore
         public void SendPeerTagged(IPEndPoint endpoint, uint peerId, Tuple<byte, byte> opcode, string tag, 
             ushort pktSeq, uint streamId, byte[] message)
         {
-            byte[] frame = WriteFrame(Response(tag, message), peerId, opcode, pktSeq, streamId);
+            byte[] frame = WriteFrame(Response(tag, message), peerId, this.peerId, opcode, pktSeq, streamId);
             SendPeer(endpoint, frame);
         }
 
@@ -649,7 +649,7 @@ namespace fnecore
             Send(new UdpFrame()
             {
                 Endpoint = endpoint,
-                Message = WriteFrame(resp, peerId, CreateOpcode(Constants.NET_FUNC_NAK), 0, CreateStreamID())
+                Message = WriteFrame(resp, peerId, this.peerId, CreateOpcode(Constants.NET_FUNC_NAK), 0, CreateStreamID())
             });
             Log(LogLevel.WARNING, $"({systemName}) {tag} from unconnected PEER {endpoint.Address.ToString()}:{endpoint.Port}");
         }
@@ -667,7 +667,7 @@ namespace fnecore
                 if (pktSeq > ushort.MaxValue)
                     pktSeq = peer.PacketSequence;
 
-                byte[] data = WriteFrame(message, peer.PeerID, opcode, (ushort)pktSeq, peer.StreamID);
+                byte[] data = WriteFrame(message, peer.PeerID, this.peerId, opcode, (ushort)pktSeq, peer.StreamID);
                 SendAsync(new UdpFrame()
                 {
                     Endpoint = peer.EndPoint,

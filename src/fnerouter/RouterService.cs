@@ -135,7 +135,7 @@ namespace fnerouter
             {
                 if (masterConfig.Enabled)
                 {
-                    Log.Logger.Information($"[Router Service] MASTER: REGISTER SYSTEM {masterConfig.Name}");
+                    Log.Logger.Information($"[Router Service] MASTER: REGISTER SYSTEM {masterConfig.Name} ({masterConfig.PeerId})");
                     RouterMasterSystem system = new RouterMasterSystem(this, masterConfig);
                     systems.Add(system);
                     system.Start();
@@ -149,7 +149,7 @@ namespace fnerouter
             {
                 if (peerConfig.Enabled)
                 {
-                    Log.Logger.Information($"[Router Service] PEER: REGISTER SYSTEM {peerConfig.Name}");
+                    Log.Logger.Information($"[Router Service] PEER: REGISTER SYSTEM {peerConfig.Name} ({peerConfig.PeerId})");
                     RouterPeerSystem system = new RouterPeerSystem(this, peerConfig);
                     systems.Add(system);
                     system.Start();

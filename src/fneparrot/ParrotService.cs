@@ -69,7 +69,7 @@ namespace fneparrot
             {
                 if (masterConfig.Enabled)
                 {
-                    Log.Logger.Information($"[Parrot Service] MASTER: REGISTER SYSTEM {masterConfig.Name}");
+                    Log.Logger.Information($"[Parrot Service] MASTER: REGISTER SYSTEM {masterConfig.Name} ({masterConfig.PeerId})");
                     MasterSystem system = new MasterSystem(masterConfig);
                     systems.Add(system);
                     system.Start();

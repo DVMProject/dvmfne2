@@ -687,11 +687,12 @@ namespace fnecore
         /// </summary>
         /// <param name="message">Payload message.</param>
         /// <param name="peerId">Peer ID.</param>
+        /// <param name="ssrc">Synchronization Source ID.</param>
         /// <param name="opcode">FNE Network Opcode.</param>
         /// <param name="pktSeq">RTP Packet Sequence.</param>
         /// <param name="streamId">Stream ID.</param>
         /// <returns></returns>
-        protected byte[] WriteFrame(byte[] message, uint peerId, Tuple<byte, byte> opcode, ushort pktSeq, uint streamId)
+        protected byte[] WriteFrame(byte[] message, uint peerId, uint ssrc, Tuple<byte, byte> opcode, ushort pktSeq, uint streamId)
         {
             byte[] buffer = new byte[message.Length + Constants.RtpHeaderLengthBytes + Constants.RtpExtensionHeaderLengthBytes + Constants.RtpFNEHeaderLengthBytes];
             FneUtils.Memset(buffer, 0, buffer.Length);
@@ -700,7 +701,7 @@ namespace fnecore
             header.Extension = true;
             header.PayloadType = Constants.DVMRtpPayloadType;
             header.Sequence = pktSeq;
-            header.SSRC = streamId;
+            header.SSRC = ssrc;
 
             header.Encode(ref buffer);
 

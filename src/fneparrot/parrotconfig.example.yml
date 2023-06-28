@@ -36,7 +36,7 @@ log:
 #
 masters:
       # Textual Name
-    - name: SKYNET
+    - name: PARROT
       # Flag indicating whether or not the master is enabled.
       enabled: true
       #
@@ -49,3 +49,5 @@ masters:
       passphrase: RPT1234
       #
       groupHangtime: 5
+      # Network Peer ID
+      peerId: 9000990

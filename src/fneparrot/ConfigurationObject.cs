@@ -81,6 +81,10 @@ namespace fneparrot
         /// 
         /// </summary>
         public int GroupHangtime;
+        /// <summary>
+        /// 
+        /// </summary>
+        public uint PeerId;
     } // public class ConfigMasterObject
 
     /// <summary>

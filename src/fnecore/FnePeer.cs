@@ -245,7 +245,7 @@ namespace fnecore
             Send(new UdpFrame()
             {
                 Endpoint = masterEndpoint,
-                Message = WriteFrame(message, peerId, opcode, pktSeq, streamId)
+                Message = WriteFrame(message, peerId, this.peerId, opcode, pktSeq, streamId)
             });
         }
 
