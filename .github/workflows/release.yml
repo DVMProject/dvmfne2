@@ -1,12 +1,7 @@
-# Authors: Charles Bricker <MajMongoose>, K4YT3X <i@k4yt3x.com>
-#
-# Description:
+# Author: K4YT3X <i@k4yt3x.com>, Charles Bricker <MajMongoose>
 # Compiles dvmfne2 for Linux, Windows, and upload the compiled files into a release
-# Utilizes portions of the pipeline written by K4YT3X in their fork. https://github.com/k4yt3x/dvmfne2/blob/master/.github/workflows/release.yml
-# 
-# TODO TODO TODO - Clean up the process. This is almost definitely not the most efficent way to do this.
 
-name: Release FNE2
+name: dvmfne2-release
 on:
   push:
     tags:
@@ -16,7 +11,6 @@ permissions:
   contents: write
 
 jobs:
-
   setup:
     name: Setup
     runs-on: ubuntu-20.04
@@ -27,147 +21,55 @@ jobs:
         id: get_version
         run: echo VERSION=${GITHUB_REF/refs\/tags\//} >> $GITHUB_OUTPUT
 
-  publish-linux-x64:
-    needs: setup
-    runs-on: ubuntu-latest
+  build:
+    name: Build
+    needs: [setup]
+    strategy:
+      matrix:
+        runtime: [linux-x64, linux-arm64, win-x64]
+    runs-on: ubuntu-20.04
+    env:
+      FNEROUTER_PATH: fnerouter-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}
+      FNEPARROT_PATH: fneparrot-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 6.0.x
-    - name: FNERouter Restore dependencies
-      working-directory: ./src/fnerouter
-      run: dotnet restore
-    - name: FNERouter Build
-      working-directory: ./src/fnerouter
-      run: dotnet publish -r linux-x64 -c Release
-    - name: FNERouter Package
-      working-directory: ./src/fnerouter/
-      run: tar -czf FNERouter-${{ needs.setup.outputs.VERSION }}-Linux-x64.tar.gz bin/Release/netcoreapp3.1/linux-x64/publish/*
-    - name: 'Upload Router'
-      uses: actions/upload-artifact@v3
-      with:
-        name: FNERouter-${{ needs.setup.outputs.VERSION }}-Linux-x64.tar.gz
-        path: ./src/fnerouter/
-        retention-days: 5
-    - name: FNEParrot Restore dependencies
-      working-directory: ./src/fneparrot
-      run: dotnet restore
-    - name: FNEParrot Build
-      working-directory: ./src/fneparrot
-      run: dotnet publish -r linux-x64 -c Release
-    - name: FNEParrot Package
-      working-directory: ./src/fneparrot/
-      run: tar -czf FNEParrot-${{ needs.setup.outputs.VERSION }}-Linux-x64.tar.gz bin/Release/netcoreapp3.1/linux-x64/publish/*
-    - name: 'Upload Parrot'
-      uses: actions/upload-artifact@v3
-      with:
-        name: FNEParrot-${{ needs.setup.outputs.VERSION }}-Linux-x64.tar.gz
-        path: ./src/fneparrot/
-        retention-days: 5
-#    - name: 'Upload Monitor'
-#      uses: actions/upload-artifact@v3
-#      with:
-#        name: monitor-linux_x64
-#        path: fnemonitor/bin/Release/net6.0/linux-x64/publish
-#        retention-days: 5
-    
-  publish-linux-arm64:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 6.0.x
-    - name: FNERouter Restore dependencies
-      working-directory: ./src/fnerouter
-      run: dotnet restore
-    - name: FNERouter Build
-      working-directory: ./src/fnerouter
-      run: dotnet publish -r linux-arm64 -c Release
-    - name: FNERouter Package
-      working-directory: ./src/fnerouter/
-      run: tar -czf FNERouter-${{ needs.setup.outputs.VERSION }}-Linux-arm64.tar.gz bin/Release/netcoreapp3.1/linux-arm64/publish/*
-    - name: 'Upload Router'
-      uses: actions/upload-artifact@v3
-      with:
-        name: FNERouter-${{ needs.setup.outputs.VERSION }}-Linux-arm64.tar.gz
-        path: ./src/fnerouter/
-        retention-days: 5
-    - name: FNEParrot Restore dependencies
-      working-directory: ./src/fneparrot
-      run: dotnet restore
-    - name: FNEParrot Build
-      working-directory: ./src/fneparrot
-      run: dotnet publish -r linux-arm64 -c Release
-    - name: FNEParrot Package
-      working-directory: ./src/fneparrot/
-      run: tar -czf FNEParrot-${{ needs.setup.outputs.VERSION }}-Linux-arm64.tar.gz bin/Release/netcoreapp3.1/linux-arm64/publish/*
-    - name: 'Upload Parrot'
-      uses: actions/upload-artifact@v3
-      with:
-        name: FNEParrot-${{ needs.setup.outputs.VERSION }}-Linux-arm64.tar.gz
-        path: ./src/fneparrot/
-        retention-days: 5
-#    - name: 'Upload Monitor'
-#      uses: actions/upload-artifact@v3
-#      with:
-#        name: monitor-linux_arm64
-#        path: fnemonitor/bin/Release/net6.0/linux-arm64/publish
-#        retention-days: 5
-      
-  publish-windows-x64:
-    needs: setup
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 6.0.x
-    - name: FNERouter Restore dependencies
-      working-directory: ./src/fnerouter
-      run: dotnet restore
-    - name: FNERouter Build
-      working-directory: ./src/fnerouter
-      run: dotnet publish -r win-x64 -c Release
-    - name: FNERouter Package
-      working-directory: ./src/fnerouter/
-      run: Compress-Archive -Path bin/Release/netcoreapp3.1/win-x64/publish/* -DestinationPath FNERouter-${{ needs.setup.outputs.VERSION }}-Win64.zip
-    - name: 'Upload Router'
-      uses: actions/upload-artifact@v3
-      with:
-        name: FNERouter-${{ needs.setup.outputs.VERSION }}-Win64.zip
-        path: ./src/fnerouter/
-        retention-days: 5
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.setup.outputs.VERSION }}
+          submodules: recursive
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+      - name: Restore dependencies
+        working-directory: ./src
+        run: dotnet restore
+      - name: Build and Publish
+        working-directory: ./src
+        run: dotnet publish -c Release -r ${{ matrix.runtime }} --self-contained true
+      - name: Package and Upload Artifacts (Linux)
+        run: |
+          mkdir "$FNEROUTER_PATH" "$FNEPARROT_PATH"
 
-    - name: FNEParrot Restore dependencies
-      working-directory: ./src/fneparrot
-      run: dotnet restore
-    - name: FNEParrot Build
-      working-directory: ./src/fneparrot
-      run: dotnet publish -r win-x64 -c Release
-    - name: FNEParrot Package
-      working-directory: ./src/fneparrot/
-      run: Compress-Archive -Path bin/Release/netcoreapp3.1/win-x64/publish/* -DestinationPath FNEParrot-${{ needs.setup.outputs.VERSION }}-Win64.zip
-    - name: 'Upload Parrot'
-      uses: actions/upload-artifact@v3
-      with:
-        name: FNEParrot-${{ needs.setup.outputs.VERSION }}-Win64.zip
-        path: ./src/fneparrot/
-        retention-days: 5
-#    - name: 'Upload Monitor'
-#      uses: actions/upload-artifact@v3
-#      with:
-#        name: monitor-windows_x64
-#        path: fnemonitor/bin/Release/net6.0/win-x64/publish
-#        retention-days: 5
+          cp -r src/fnerouter/bin/Release/netcoreapp3.1/${{ matrix.runtime }}/publish/* "$FNEROUTER_PATH"
+          cp -r src/fneparrot/bin/Release/netcoreapp3.1/${{ matrix.runtime }}/publish/* "$FNEPARROT_PATH"
+
+          zip -r fnerouter-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}.zip "$FNEROUTER_PATH"
+          zip -r fneparrot-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}.zip "$FNEPARROT_PATH"
+      - name: Upload Router Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: fnerouter-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}
+          path: fnerouter-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}.zip
+      - name: Upload Parrot Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: fneparrot-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}
+          path: fneparrot-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}.zip
+
   create-release:
     name: Create Release
-    needs: [setup,publish-linux-x64, publish-linux-arm64,publish-windows-x64]
+    needs: [setup, build]
     runs-on: ubuntu-20.04
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -183,86 +85,37 @@ jobs:
 
   upload:
     name: Upload
-    needs: [setup,publish-linux-x64, publish-linux-arm64,publish-windows-x64,create-release]
+    needs: [setup, build, create-release]
+    strategy:
+      matrix:
+        runtime: [linux-x64, linux-arm64, win-x64]
     runs-on: ubuntu-20.04
     env:
       DEBIAN_FRONTEND: noninteractive
     steps:
-      - name: Download fnerouter-linux64 artifact
+      - name: Download fnerouter artifact
         uses: actions/download-artifact@v2
         with:
-          name: FNERouter-${{ needs.setup.outputs.VERSION }}-Linux-x64.tar.gz
-      - name: Download fnerouter-linuxarm64 artifact
+          name: fnerouter-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}
+      - name: Download fneparrot artifact
         uses: actions/download-artifact@v2
         with:
-          name: FNERouter-${{ needs.setup.outputs.VERSION }}-Linux-arm64.tar.gz
-      - name: Download fnerouter-win64 artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: FNERouter-${{ needs.setup.outputs.VERSION }}-Win64.zip
-      - name: Download fneparrot-linux64 artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: FNEParrot-${{ needs.setup.outputs.VERSION }}-Linux-x64.tar.gz
-      - name: Download fneparrot-linuxarm64 artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: FNEParrot-${{ needs.setup.outputs.VERSION }}-Linux-arm64.tar.gz
-      - name: Download fneparrot-win64 artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: FNEParrot-${{ needs.setup.outputs.VERSION }}-Win64.zip
-      - name: Upload Router release asset Linux-x64.tar.gz
+          name: fneparrot-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}
+      - name: Upload release asset (fnerouter)
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: FNERouter-${{ needs.setup.outputs.VERSION }}-Linux-x64.tar.gz
-          asset_name: FNERouter-${{ needs.setup.outputs.VERSION }}-Linux-x64.tar.gz
-          asset_content_type: application/gzip
-      - name: Upload Router release asset Linux-arm64.tar.gz
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: FNERouter-${{ needs.setup.outputs.VERSION }}-Linux-arm64.tar.gz
-          asset_name: FNERouter-${{ needs.setup.outputs.VERSION }}-Linux-arm64.tar.gz
-          asset_content_type: application/gzip
-      - name: Upload Router release asset Winx64.zip
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: FNERouter-${{ needs.setup.outputs.VERSION }}-Win64.zip
-          asset_name: FNERouter-${{ needs.setup.outputs.VERSION }}-Win64.zip
+          asset_path: fnerouter-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}.zip
+          asset_name: fnerouter-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}.zip
           asset_content_type: application/zip
-      - name: Upload Parrot release asset Linux-x64.tar.gz
+      - name: Upload release asset (fneparrot)
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: FNEParrot-${{ needs.setup.outputs.VERSION }}-Linux-x64.tar.gz
-          asset_name: FNEParrot-${{ needs.setup.outputs.VERSION }}-Linux-x64.tar.gz
-          asset_content_type: application/gzip
-      - name: Upload Parrot release asset Linux-arm64.tar.gz
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: FNEParrot-${{ needs.setup.outputs.VERSION }}-Linux-arm64.tar.gz
-          asset_name: FNEParrot-${{ needs.setup.outputs.VERSION }}-Linux-arm64.tar.gz
-          asset_content_type: application/gzip
-      - name: Upload Parrot release asset Winx64.zip
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: FNEParrot-${{ needs.setup.outputs.VERSION }}-Win64.zip
-          asset_name: FNEParrot-${{ needs.setup.outputs.VERSION }}-Win64.zip
+          asset_path: fneparrot-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}.zip
+          asset_name: fneparrot-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}.zip
           asset_content_type: application/zip
