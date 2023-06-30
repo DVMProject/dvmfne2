@@ -1,11 +1,20 @@
 # Author: K4YT3X <i@k4yt3x.com>, Charles Bricker <MajMongoose>
 # Compiles dvmfne2 for Linux, Windows, and upload the compiled files into a release
 
-name: dvmfne2-release
+name: dvmfne2-build
 on:
+  workflow_dispatch:
+    inputs:
+      create_pre_release:
+        description: "Create Pre-Release"
+        required: false
+        type: boolean
   push:
-    tags:
-      - "*"
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 permissions:
   contents: write
@@ -15,11 +24,11 @@ jobs:
     name: Setup
     runs-on: ubuntu-20.04
     outputs:
-      VERSION: ${{ steps.get_version.outputs.VERSION }}
+      DATE: ${{ steps.get_date.outputs.DATE }}
     steps:
-      - name: Get version
-        id: get_version
-        run: echo VERSION=${GITHUB_REF/refs\/tags\//} >> $GITHUB_OUTPUT
+      - name: Get date
+        id: get_date
+        run: echo DATE=$(date +'%Y-%m-%d') >> $GITHUB_OUTPUT
 
   build:
     name: Build
@@ -29,14 +38,10 @@ jobs:
         runtime: [linux-x64, linux-arm64, win-x64]
     runs-on: ubuntu-20.04
     env:
-      FNEROUTER_PATH: fnerouter-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}
-      FNEPARROT_PATH: fneparrot-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}
+      FNEROUTER_PATH: fnerouter-${{ needs.setup.outputs.DATE }}-${{ matrix.runtime }}
+      FNEPARROT_PATH: fneparrot-${{ needs.setup.outputs.DATE }}-${{ matrix.runtime }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ needs.setup.outputs.VERSION }}
-          submodules: recursive
+      - uses: actions/checkout@v2
       - name: Setup .NET
         uses: actions/setup-dotnet@v1
         with:
@@ -54,20 +59,21 @@ jobs:
           cp -r src/fnerouter/bin/Release/netcoreapp3.1/${{ matrix.runtime }}/publish/* "$FNEROUTER_PATH"
           cp -r src/fneparrot/bin/Release/netcoreapp3.1/${{ matrix.runtime }}/publish/* "$FNEPARROT_PATH"
 
-          zip -r fnerouter-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}.zip "$FNEROUTER_PATH"
-          zip -r fneparrot-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}.zip "$FNEPARROT_PATH"
+          zip -r fnerouter-${{ needs.setup.outputs.DATE }}-${{ matrix.runtime }}.zip "$FNEROUTER_PATH"
+          zip -r fneparrot-${{ needs.setup.outputs.DATE }}-${{ matrix.runtime }}.zip "$FNEPARROT_PATH"
       - name: Upload Router Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: fnerouter-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}
-          path: fnerouter-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}.zip
+          name: fnerouter-${{ needs.setup.outputs.DATE }}-${{ matrix.runtime }}
+          path: fnerouter-${{ needs.setup.outputs.DATE }}-${{ matrix.runtime }}.zip
       - name: Upload Parrot Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: fneparrot-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}
-          path: fneparrot-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}.zip
+          name: fneparrot-${{ needs.setup.outputs.DATE }}-${{ matrix.runtime }}
+          path: fneparrot-${{ needs.setup.outputs.DATE }}-${{ matrix.runtime }}.zip
 
   create-release:
+    if: ${{ github.event.inputs.create_pre_release == 'true' }}
     name: Create Release
     needs: [setup, build]
     runs-on: ubuntu-20.04
@@ -78,12 +84,13 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ needs.setup.outputs.VERSION }}
-          name: Release ${{ needs.setup.outputs.VERSION }}
+          tag_name: ${{ needs.setup.outputs.DATE }}
+          name: Nightly Build ${{ needs.setup.outputs.DATE }}
           draft: false
-          prerelease: false
+          prerelease: true
 
   upload:
+    if: ${{ github.event.inputs.create_pre_release == 'true' }}
     name: Upload
     needs: [setup, build, create-release]
     strategy:
@@ -96,19 +103,19 @@ jobs:
       - name: Download fnerouter artifact
         uses: actions/download-artifact@v2
         with:
-          name: fnerouter-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}
+          name: fnerouter-${{ needs.setup.outputs.DATE }}-${{ matrix.runtime }}
       - name: Download fneparrot artifact
         uses: actions/download-artifact@v2
         with:
-          name: fneparrot-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}
+          name: fneparrot-${{ needs.setup.outputs.DATE }}-${{ matrix.runtime }}
       - name: Upload release asset (fnerouter)
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: fnerouter-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}.zip
-          asset_name: fnerouter-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}.zip
+          asset_path: fnerouter-${{ needs.setup.outputs.DATE }}-${{ matrix.runtime }}.zip
+          asset_name: fnerouter-${{ needs.setup.outputs.DATE }}-${{ matrix.runtime }}.zip
           asset_content_type: application/zip
       - name: Upload release asset (fneparrot)
         uses: actions/upload-release-asset@v1
@@ -116,6 +123,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: fneparrot-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}.zip
-          asset_name: fneparrot-${{ needs.setup.outputs.VERSION }}-${{ matrix.runtime }}.zip
+          asset_path: fneparrot-${{ needs.setup.outputs.DATE }}-${{ matrix.runtime }}.zip
+          asset_name: fneparrot-${{ needs.setup.outputs.DATE }}-${{ matrix.runtime }}.zip
           asset_content_type: application/zip
