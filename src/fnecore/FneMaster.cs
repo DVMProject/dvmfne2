@@ -1012,7 +1012,19 @@ namespace fnecore
                                     Log(LogLevel.INFO, $"({systemName}) Challenge Response sent to PEER {peerId} for login {info.Salt}");
                                 }
                                 else
+                                {
                                     SendNAK(frame.Endpoint, peerId, Constants.TAG_REPEATER_LOGIN);
+
+                                    // check if the peer is in our peer list -- if he is, and he isn't in a running state, reset
+                                    // the login sequence
+                                    if (peerId > 0 && !peers.ContainsKey(peerId))
+                                    {
+                                        PeerInformation info = new PeerInformation();
+                                        if (info.State != ConnectionState.RUNNING)
+                                            if (peers.ContainsKey(peerId))
+                                                peers.Remove(peerId);
+                                    }
+                                }
                             }
                             break;
                         case Constants.NET_FUNC_RPTK:                                                   // Repeater Authentication
