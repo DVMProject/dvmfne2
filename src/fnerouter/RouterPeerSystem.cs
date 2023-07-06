@@ -60,10 +60,22 @@ namespace fnerouter
         private static FnePeer Create(ConfigPeerObject config)
         {
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, config.Port);
-            if (config.Address != null)
+
+            if (config.MasterAddress == null)
+                throw new NullReferenceException("address");
+            if (config.MasterAddress == string.Empty)
+                throw new ArgumentException("address");
+
+            // handle using address as IP or resolving from hostname to IP
+            try
             {
-                if (config.Address != string.Empty)
-                    endpoint = new IPEndPoint(IPAddress.Parse(config.Address), config.Port);
+                endpoint = new IPEndPoint(IPAddress.Parse(config.MasterAddress), config.MasterPort);
+            }
+            catch (FormatException)
+            {
+                IPAddress[] addresses = Dns.GetHostAddresses(config.MasterAddress);
+                if (addresses.Length > 0)
+                    endpoint = new IPEndPoint(addresses[0], config.MasterPort);
             }
 
             FnePeer peer = new FnePeer(config.Name, config.PeerId, endpoint);

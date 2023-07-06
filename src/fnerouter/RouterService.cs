@@ -150,6 +150,21 @@ namespace fnerouter
                 if (peerConfig.Enabled)
                 {
                     Log.Logger.Information($"[Router Service] PEER: REGISTER SYSTEM {peerConfig.Name} ({peerConfig.PeerId})");
+                    if (peerConfig.MasterAddress == null)
+                    {
+                        peerConfig.Enabled = false;
+                        Log.Logger.Information($"[Router Service] PEER: SYSTEM {peerConfig.Name} NOT REGISTERED (DISABLED)");
+                        Log.Logger.Error($"[Router Service] PEER: SYSTEM {peerConfig.Name} MISSING MASTER ADDRESS");
+                        continue;
+                    }
+                    if (peerConfig.MasterAddress == string.Empty)
+                    {
+                        peerConfig.Enabled = false;
+                        Log.Logger.Information($"[Router Service] PEER: SYSTEM {peerConfig.Name} NOT REGISTERED (DISABLED)");
+                        Log.Logger.Error($"[Router Service] PEER: SYSTEM {peerConfig.Name} MISSING MASTER ADDRESS");
+                        continue;
+                    }
+
                     RouterPeerSystem system = new RouterPeerSystem(this, peerConfig);
                     systems.Add(system);
                     system.Start();
