@@ -240,8 +240,12 @@ namespace fnecore
         /// <param name="opcode">Opcode</param>
         /// <param name="message">Byte array containing message to send</param>
         /// <param name="pktSeq">RTP Packet Sequence</param>
-        public void SendMaster(Tuple<byte, byte> opcode, byte[] message, ushort pktSeq)
+        /// <param name="streamId"></param>
+        public void SendMaster(Tuple<byte, byte> opcode, byte[] message, ushort pktSeq, uint streamId = 0)
         {
+            if (streamId == 0)
+                streamId = this.streamId;
+
             Send(new UdpFrame()
             {
                 Endpoint = masterEndpoint,
@@ -434,6 +438,12 @@ namespace fnecore
                                     {
                                         Log(LogLevel.ERROR, $"({systemName}) Unknown protocol opcode {FneUtils.BytesToString(message, 0, 4)} -- {FneUtils.HexDump(message, 0)}");
                                     }
+                                }
+                                break;
+
+                            case Constants.NET_FUNC_MASTER:
+                                {
+                                    /* stub */
                                 }
                                 break;
 
