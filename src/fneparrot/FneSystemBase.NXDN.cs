@@ -99,7 +99,8 @@ namespace fneparrot
                     FneMaster master = (FneMaster)fne;
                     foreach (Tuple<byte[], ushort> pkt in nxdnCallData)
                     {
-                        master.SendPeers(FneBase.CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_NXDN), pkt.Item1, pkt.Item2);
+                        foreach (uint peerId in master.Peers.Keys)
+                            master.SendPeer(peerId, FneBase.CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_NXDN), pkt.Item1, pkt.Item2);
                         Task.Delay(60).GetAwaiter().GetResult();
                     }
                     nxdnCallData.Clear();

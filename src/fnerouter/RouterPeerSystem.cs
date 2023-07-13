@@ -96,10 +96,10 @@ namespace fnerouter
         /// <param name="message">Message to send</param>
         public void SendActivityTransfer(string message)
         {
-            byte[] data = new byte[message.Length];
-            FneUtils.StringToBytes(message, data, 0, message.Length);
+            byte[] data = new byte[message.Length + 11];
+            FneUtils.StringToBytes(message, data, 11, message.Length);
 
-            peer.SendMasterTagged(FneBase.CreateOpcode(Constants.NET_FUNC_TRANSFER, Constants.NET_TRANSFER_SUBFUNC_ACTIVITY), Constants.TAG_TRANSFER_ACT_LOG, data);
+            peer.SendMaster(FneBase.CreateOpcode(Constants.NET_FUNC_TRANSFER, Constants.NET_TRANSFER_SUBFUNC_ACTIVITY), data);
         }
 
         /// <summary>
@@ -108,10 +108,10 @@ namespace fnerouter
         /// <param name="message">Message to send</param>
         public void SendDiagnosticsTransfer(string message)
         {
-            byte[] data = new byte[message.Length];
-            FneUtils.StringToBytes(message, data, 0, message.Length);
+            byte[] data = new byte[message.Length + 11];
+            FneUtils.StringToBytes(message, data, 11, message.Length);
 
-            peer.SendMasterTagged(FneBase.CreateOpcode(Constants.NET_FUNC_TRANSFER, Constants.NET_TRANSFER_SUBFUNC_DIAG), Constants.TAG_TRANSFER_DIAG_LOG, data);
+            peer.SendMaster(FneBase.CreateOpcode(Constants.NET_FUNC_TRANSFER, Constants.NET_TRANSFER_SUBFUNC_DIAG), data);
         }
     } // public class RouterPeerSystem
 } // namespace fnerouter

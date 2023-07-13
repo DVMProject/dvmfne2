@@ -215,7 +215,7 @@ namespace fnerouter
                             */
 
                             // from a different group than last RX from this system, but it has been less than Group Hangtime
-                            if ((target.Tgid != tgtStatus.RxTGId) && (pktTime - tgtStatus.RxTime < new TimeSpan(0, 0, rules.GroupHangTime)))
+                            if (tgtStatus.RxTGId != 0 && (target.Tgid != tgtStatus.RxTGId) && (pktTime - tgtStatus.RxTime < new TimeSpan(0, 0, rules.GroupHangTime)))
                                 if (e.FrameType == FrameType.DATA_SYNC && e.DataType == DMRDataType.VOICE_LC_HEADER)
                                 {
                                     Log.Logger.Information($"({SystemName}) DMRD: Call not routed to TGID {target.Tgid}, target active or in group hangtime: PEER {tgtSystem.PeerId} TS {target.Slot + 1} TGID {tgtStatus.RxTGId}");
@@ -225,7 +225,7 @@ namespace fnerouter
                                 }
 
                             // from a different group than last TX to this system, but it has been less than Group Hangtime
-                            if ((target.Tgid != tgtStatus.TxTGId) && (pktTime - tgtStatus.TxTime < new TimeSpan(0, 0, rules.GroupHangTime)))
+                            if (tgtStatus.TxTGId != 0 && (target.Tgid != tgtStatus.TxTGId) && (pktTime - tgtStatus.TxTime < new TimeSpan(0, 0, rules.GroupHangTime)))
                                 if (e.FrameType == FrameType.DATA_SYNC && e.DataType == DMRDataType.VOICE_LC_HEADER)
                                 {
                                     Log.Logger.Information($"({SystemName}) DMRD: Call not routed to TGID {target.Tgid}, target in group hangtime: PEER {tgtSystem.PeerId} TS {target.Slot + 1} TGID {tgtStatus.TxTGId}");
@@ -235,7 +235,7 @@ namespace fnerouter
                                 }
 
                             // from the same group as the last RX from this system, but from a different subscriber, and it has been less than stream timeout
-                            if ((target.Tgid != tgtStatus.RxTGId) && (e.SrcId != tgtStatus.RxRFS) && (pktTime - tgtStatus.RxTime < new TimeSpan(0, 0, 0, 0, (int)(Constants.STREAM_TO * 1000))))
+                            if (tgtStatus.RxTGId != 0 && tgtStatus.RxRFS != 0 && (target.Tgid != tgtStatus.RxTGId) && (e.SrcId != tgtStatus.RxRFS) && (pktTime - tgtStatus.RxTime < new TimeSpan(0, 0, 0, 0, (int)(Constants.STREAM_TO * 1000))))
                                 if (e.FrameType == FrameType.DATA_SYNC && e.DataType == DMRDataType.VOICE_LC_HEADER)
                                 {
                                     Log.Logger.Information($"({SystemName}) DMRD: Call not routed to TGID {target.Tgid}, matching call already active on target: PEER {tgtSystem.PeerId} TS {target.Slot + 1} TGID {tgtStatus.TxTGId} SRC_ID {tgtStatus.TxRFS}");
@@ -245,7 +245,7 @@ namespace fnerouter
                                 }
 
                             // from the same group as the last TX to this system, but from a different subscriber, and it has been less than stream timeout
-                            if ((target.Tgid != tgtStatus.TxTGId) && (e.SrcId != tgtStatus.TxRFS) && (pktTime - tgtStatus.RxTime < new TimeSpan(0, 0, 0, 0, (int)(Constants.STREAM_TO * 1000))))
+                            if (tgtStatus.TxTGId != 0 && tgtStatus.TxRFS != 0 && (target.Tgid != tgtStatus.TxTGId) && (e.SrcId != tgtStatus.TxRFS) && (pktTime - tgtStatus.RxTime < new TimeSpan(0, 0, 0, 0, (int)(Constants.STREAM_TO * 1000))))
                                 if (e.FrameType == FrameType.DATA_SYNC && e.DataType == DMRDataType.VOICE_LC_HEADER)
                                 {
                                     Log.Logger.Information($"({SystemName}) DMRD: Call not routed to TGID {target.Tgid}, call route in progress on target: PEER {tgtSystem.PeerId} TS {target.Slot + 1} TGID {tgtStatus.TxTGId} SRC_ID {tgtStatus.TxRFS}");
@@ -348,15 +348,16 @@ namespace fnerouter
                             }
 
                             // what type of FNE are we?
-                            if (fne.FneType == FneType.MASTER)
+                            if (tgtSystem.FneType == FneType.MASTER)
                             {
-                                FneMaster master = (FneMaster)fne;
-                                master.SendPeer(tgtSystem.PeerId, FneBase.CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_DMR), frame, e.PacketSequence);
+                                FneMaster master = (FneMaster)tgtSystem.fne;
+                                foreach (uint peerId in master.Peers.Keys)
+                                    master.SendPeer(peerId, FneBase.CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_DMR), frame, e.PacketSequence, e.StreamId);
                             }
-                            else if (fne.FneType == FneType.PEER)
+                            else if (tgtSystem.FneType == FneType.PEER)
                             {
-                                FnePeer peer = (FnePeer)fne;
-                                peer.SendMaster(FneBase.CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_DMR), frame, e.PacketSequence);
+                                FnePeer peer = (FnePeer)tgtSystem.fne;
+                                peer.SendMaster(FneBase.CreateOpcode(Constants.NET_FUNC_PROTOCOL, Constants.NET_PROTOCOL_SUBFUNC_DMR), frame, e.PacketSequence, e.StreamId);
                             }
 
                             Log.Logger.Debug($"({SystemName}) DMR Packet routed by rule {groupVoice.Name} to SYSTEM {tgtSystem.SystemName}");

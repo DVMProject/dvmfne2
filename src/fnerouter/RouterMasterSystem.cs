@@ -149,7 +149,7 @@ namespace fnerouter
                 offs += 4;
             }
 
-            master.SendPeerTagged(peerId, FneBase.CreateOpcode(Constants.NET_FUNC_MASTER, Constants.NET_MASTER_SUBFUNC_WL_RID), Constants.TAG_MASTER_WL_RID, data, true);
+            master.SendPeerCommand(peerId, FneBase.CreateOpcode(Constants.NET_FUNC_MASTER, Constants.NET_MASTER_SUBFUNC_WL_RID), data, true);
         }
 
         /// <summary>
@@ -212,7 +212,7 @@ namespace fnerouter
                 offs += 4;
             }
 
-            master.SendPeerTagged(peerId, FneBase.CreateOpcode(Constants.NET_FUNC_MASTER, Constants.NET_MASTER_SUBFUNC_BL_RID), Constants.TAG_MASTER_BL_RID, data, true);
+            master.SendPeerCommand(peerId, FneBase.CreateOpcode(Constants.NET_FUNC_MASTER, Constants.NET_MASTER_SUBFUNC_BL_RID), data, true);
         }
 
         /// <summary>
@@ -281,7 +281,7 @@ namespace fnerouter
                     offs += 5;
                 }
 
-                master.SendPeerTagged(peerId, FneBase.CreateOpcode(Constants.NET_FUNC_MASTER, Constants.NET_MASTER_SUBFUNC_ACTIVE_TGS), Constants.TAG_MASTER_ACTIVE_TGS, data, true);
+                master.SendPeerCommand(peerId, FneBase.CreateOpcode(Constants.NET_FUNC_MASTER, Constants.NET_MASTER_SUBFUNC_ACTIVE_TGS), data, true);
             }
         }
 
@@ -351,7 +351,7 @@ namespace fnerouter
                     offs += 5;
                 }
 
-                master.SendPeerTagged(peerId, FneBase.CreateOpcode(Constants.NET_FUNC_MASTER, Constants.NET_MASTER_SUBFUNC_DEACTIVE_TGS), Constants.TAG_MASTER_DEACTIVE_TGS, data, true);
+                master.SendPeerCommand(peerId, FneBase.CreateOpcode(Constants.NET_FUNC_MASTER, Constants.NET_MASTER_SUBFUNC_DEACTIVE_TGS), data, true);
             }
         }
 

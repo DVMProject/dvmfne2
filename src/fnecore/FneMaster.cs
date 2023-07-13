@@ -377,23 +377,26 @@ namespace fnecore
         }
 
         /// <summary>
-        /// Helper to send a raw message to the specified peer.
+        /// Helper to send a data message to the specified peer.
         /// </summary>
         /// <param name="peerId">Peer ID</param>
         /// <param name="opcode">Opcode</param>
         /// <param name="message">Byte array containing message to send</param>
         /// <param name="pktSeq"></param>
-        public void SendPeer(uint peerId, Tuple<byte, byte> opcode, byte[] message, ushort pktSeq)
+        /// <param name="streamId"></param>
+        public void SendPeer(uint peerId, Tuple<byte, byte> opcode, byte[] message, ushort pktSeq, uint streamId = 0)
         {
             if (peers.ContainsKey(peerId))
             {
-                byte[] data = WriteFrame(message, peerId, this.peerId, opcode, pktSeq, peers[peerId].StreamID);
+                if (streamId == 0)
+                    streamId = peers[peerId].StreamID;
+                byte[] data = WriteFrame(message, peerId, this.peerId, opcode, pktSeq, streamId);
                 SendPeer(peers[peerId].EndPoint, data);
             }
         }
 
         /// <summary>
-        /// Helper to send a raw message to the specified peer.
+        /// Helper to send a data message to the specified peer.
         /// </summary>
         /// <param name="peerId">Peer ID</param>
         /// <param name="opcode">Opcode</param>
@@ -412,33 +415,47 @@ namespace fnecore
         }
 
         /// <summary>
-        /// Helper to send a tagged message to the specified peer.
+        /// Helper to send a command message to the specified peer.
         /// </summary>
         /// <param name="endpoint"><see cref="IPEndPoint"/></param>
         /// <param name="peerId">Peer ID</param>
         /// <param name="opcode">Opcode</param>
-        /// <param name="tag">Tag from <see cref="Constants"/></param>
-        /// <param name="message">Byte array containing message to send</param>
         /// <param name="pktSeq"></param>
         /// <param name="streamId"></param>
-        public void SendPeerTagged(IPEndPoint endpoint, uint peerId, Tuple<byte, byte> opcode, string tag, 
-            ushort pktSeq, uint streamId, byte[] message)
+        /// <param name="message">Byte array containing message to send</param>
+        public void SendPeerCommand(IPEndPoint endpoint, uint peerId, Tuple<byte, byte> opcode, ushort pktSeq, uint streamId, byte[] message = null)
         {
-            byte[] frame = WriteFrame(Response(tag, message), peerId, this.peerId, opcode, pktSeq, streamId);
+            int messageLength = 0;
+            if (message != null)
+                messageLength = message.Length;
+
+            byte[] buffer = new byte[messageLength + 6];
+            if (message != null)
+                Buffer.BlockCopy(message, 0, buffer, 6, message.Length);
+
+            byte[] frame = WriteFrame(buffer, peerId, this.peerId, opcode, pktSeq, streamId);
             SendPeer(endpoint, frame);
         }
 
         /// <summary>
-        /// Helper to send a tagged message to the specified peer.
+        /// Helper to send a command message to the specified peer.
         /// </summary>
+        /// <param name="endpoint"><see cref="IPEndPoint"/></param>
         /// <param name="peerId">Peer ID</param>
         /// <param name="opcode">Opcode</param>
-        /// <param name="tag">Tag from <see cref="Constants"/></param>
         /// <param name="message">Byte array containing message to send</param>
         /// <param name="incPktSeq"></param>
-        public void SendPeerTagged(uint peerId, Tuple<byte, byte> opcode, string tag, byte[] message, bool incPktSeq = false)
+        public void SendPeerCommand(uint peerId, Tuple<byte, byte> opcode, byte[] message = null, bool incPktSeq = false)
         {
-            SendPeer(peerId, opcode, Response(tag, message), incPktSeq);
+            int messageLength = 0;
+            if (message != null)
+                messageLength = message.Length;
+
+            byte[] buffer = new byte[messageLength + 6];
+            if (message != null)
+                Buffer.BlockCopy(message, 0, buffer, 6, message.Length);
+
+            SendPeer(peerId, opcode, buffer, incPktSeq);
         }
 
         /// <summary>
@@ -452,8 +469,7 @@ namespace fnecore
                 peers[peerId].PacketSequence = ++peers[peerId].PacketSequence;
 
                 // send ping response to peer
-                SendPeerTagged(peerId, CreateOpcode(Constants.NET_FUNC_ACK), 
-                    Constants.TAG_REPEATER_ACK, PackPeerId(peerId));
+                SendPeerCommand(peerId, CreateOpcode(Constants.NET_FUNC_ACK));
             }
         }
 
@@ -469,8 +485,7 @@ namespace fnecore
                 peers[peerId].PacketSequence = ++peers[peerId].PacketSequence;
 
                 // send ping response to peer
-                SendPeerTagged(peerId, CreateOpcode(Constants.NET_FUNC_NAK),
-                    Constants.TAG_MASTER_NAK, PackPeerId(peerId));
+                SendPeerCommand(peerId, CreateOpcode(Constants.NET_FUNC_NAK));
                 Log(LogLevel.WARNING, $"({systemName}) {tag} from unauth PEER {peerId}");
             }
         }
@@ -482,11 +497,13 @@ namespace fnecore
         /// <param name="tag">Tag NAK'ed</param>
         public void SendNAK(IPEndPoint endpoint, uint peerId, string tag)
         {
-            byte[] resp = Response(Constants.TAG_MASTER_NAK, PackPeerId(peerId));
+            byte[] buffer = new byte[10];
+            FneUtils.WriteBytes(peerId, ref buffer, 6);
+
             Send(new UdpFrame()
             {
                 Endpoint = endpoint,
-                Message = WriteFrame(resp, peerId, this.peerId, CreateOpcode(Constants.NET_FUNC_NAK), 0, CreateStreamID())
+                Message = WriteFrame(buffer, peerId, this.peerId, CreateOpcode(Constants.NET_FUNC_NAK), 0, CreateStreamID())
             });
             Log(LogLevel.WARNING, $"({systemName}) {tag} from unconnected PEER {endpoint.Address.ToString()}:{endpoint.Port}");
         }
@@ -511,18 +528,6 @@ namespace fnecore
                     Message = data
                 });
             }
-        }
-
-        /// <summary>
-        /// Helper to send a tagged message to the connected peers.
-        /// </summary>
-        /// <param name="opcode">Opcode</param>
-        /// <param name="tag">Tag from <see cref="Constants"/></param>
-        /// <param name="message">Byte array containing message to send</param>
-        /// <param name="pktSeq">RTP Packet Sequence</param>
-        public void SendPeersTagged(Tuple<byte, byte> opcode, string tag, byte[] message, uint pktSeq = uint.MaxValue)
-        {
-            SendPeers(opcode, Response(tag, message), pktSeq);
         }
 
         /// <summary>
@@ -591,7 +596,7 @@ namespace fnecore
                         continue;
                     }
 
-                    if (message.Length < 4)
+                    if (message.Length < 1)
                     {
                         Log(LogLevel.WARNING, $"({systemName}) Malformed packet (from {frame.Endpoint}) -- {FneUtils.HexDump(message, 0)}");
                         continue;
@@ -838,10 +843,10 @@ namespace fnecore
 
                                     Log(LogLevel.INFO, $"({systemName}) Repeater logging in with PEER {peerId}, {info.EndPoint}");
 
-                                    byte[] salt = new byte[4];
-                                    FneUtils.WriteBytes(info.Salt, ref salt, 0);
-                                    SendPeerTagged(frame.Endpoint, peerId, CreateOpcode(Constants.NET_FUNC_ACK), Constants.TAG_REPEATER_ACK,
-                                        ++info.PacketSequence, streamId, salt);
+                                    byte[] buffer = new byte[4];
+                                    FneUtils.WriteBytes(info.Salt, ref buffer, 0);
+
+                                    SendPeerCommand(frame.Endpoint, peerId, CreateOpcode(Constants.NET_FUNC_ACK), ++info.PacketSequence, streamId, buffer);
 
                                     info.State = ConnectionState.WAITING_AUTHORISATION;
                                     peers.Add(peerId, info);
@@ -1005,9 +1010,7 @@ namespace fnecore
                                     {
                                         Log(LogLevel.INFO, $"({systemName}) PEER {peerId} is closing down");
 
-                                        // send response
-                                        SendPeerTagged(peerId, CreateOpcode(Constants.NET_FUNC_NAK), Constants.TAG_MASTER_NAK, PackPeerId(peerId));
-
+                                        SendPeerACK(peerId);
                                         peers.Remove(peerId);
 
                                         // userland actions
@@ -1032,7 +1035,7 @@ namespace fnecore
                                         peers[peerId] = peer;
 
                                         // send ping response to peer
-                                        SendPeerTagged(peerId, CreateOpcode(Constants.NET_FUNC_PONG), Constants.TAG_MASTER_PONG, PackPeerId(peerId), true);
+                                        SendPeerCommand(peerId, CreateOpcode(Constants.NET_FUNC_PONG), null, true);
                                         Log(LogLevel.DEBUG, $"({systemName}) Received and answered RPTPING from PEER {peerId}");
                                     }
                                     else
@@ -1095,8 +1098,8 @@ namespace fnecore
                                             // validate peer (simple validation really)
                                             if (peers[peerId].Connection && peers[peerId].EndPoint.ToString() == frame.Endpoint.ToString())
                                             {
-                                                byte[] buffer = new byte[messageLength - 12];
-                                                Buffer.BlockCopy(message, 12, buffer, 0, buffer.Length);
+                                                byte[] buffer = new byte[messageLength - 11];
+                                                Buffer.BlockCopy(message, 11, buffer, 0, buffer.Length);
 
                                                 string msg = Encoding.ASCII.GetString(buffer);
                                                 if (DiagnosticTransfer != null)
