@@ -653,9 +653,7 @@ namespace fnecore
                                                 dataType = (DMRDataType)(bits & ~(0x20));
 
                                             byte n = (byte)(bits & 0xF);
-#if DEBUG
-                                            Log(LogLevel.DEBUG, $"{systemName} DMRD: SRC_PEER {peerId} SRC_ID {srcId} DST_ID {dstId} TS {slot} [STREAM ID {streamId}] PKT SEQ {rtpHeader.Sequence}");
-#endif
+
                                             // is the stream valid?
                                             bool ret = true;
                                             if (DMRDataValidate != null)
@@ -671,7 +669,9 @@ namespace fnecore
 
                                                 if (ret)
                                                     continue;
-
+#if DEBUG
+                                                Log(LogLevel.DEBUG, $"{systemName} DMRD: SRC_PEER {peerId} SRC_ID {srcId} DST_ID {dstId} TS {slot} [STREAM ID {streamId}] PKT SEQ {rtpHeader.Sequence}");
+#endif
                                                 // are we repeating to connected peers?
                                                 if (Repeat && !NoRepeatDMR)
                                                 {
@@ -712,9 +712,7 @@ namespace fnecore
                                             CallType callType = (message[4] == P25Defines.LC_PRIVATE) ? CallType.PRIVATE : CallType.GROUP;
                                             P25DUID duid = (P25DUID)message[22];
                                             FrameType frameType = ((duid != P25DUID.TDU) && (duid != P25DUID.TDULC)) ? FrameType.VOICE : FrameType.TERMINATOR;
-#if DEBUG
-                                            Log(LogLevel.DEBUG, $"{systemName} P25D: SRC_PEER {peerId} SRC_ID {srcId} DST_ID {dstId} [STREAM ID {streamId}] PKT SEQ {rtpHeader.Sequence}");
-#endif
+
                                             // is the stream valid?
                                             bool ret = true;
                                             if (P25DataValidate != null)
@@ -733,6 +731,9 @@ namespace fnecore
 
                                                 if (ret)
                                                     continue;
+#if DEBUG
+                                                Log(LogLevel.DEBUG, $"{systemName} P25D: SRC_PEER {peerId} SRC_ID {srcId} DST_ID {dstId} [STREAM ID {streamId}] PKT SEQ {rtpHeader.Sequence}");
+#endif
 
                                                 // are we repeating to connected peers?
                                                 if (Repeat && !NoRepeatP25)
@@ -776,9 +777,7 @@ namespace fnecore
                                             byte bits = message[15];
                                             CallType callType = ((bits & 0x40) == 0x40) ? CallType.PRIVATE : CallType.GROUP;
                                             FrameType frameType = (messageType != NXDNMessageType.MESSAGE_TYPE_TX_REL) ? FrameType.VOICE : FrameType.TERMINATOR;
-#if DEBUG
-                                            Log(LogLevel.DEBUG, $"{systemName} NXDD: SRC_PEER {peerId} SRC_ID {srcId} DST_ID {dstId} [STREAM ID {streamId}] PKT SEQ {rtpHeader.Sequence}");
-#endif
+
                                             // is the stream valid?
                                             bool ret = true;
                                             if (NXDNDataValidate != null)
@@ -794,6 +793,9 @@ namespace fnecore
 
                                                 if (ret)
                                                     continue;
+#if DEBUG
+                                                Log(LogLevel.DEBUG, $"{systemName} NXDD: SRC_PEER {peerId} SRC_ID {srcId} DST_ID {dstId} [STREAM ID {streamId}] PKT SEQ {rtpHeader.Sequence}");
+#endif
 
                                                 // are we repeating to connected peers?
                                                 if (Repeat && !NoRepeatNXDN)
